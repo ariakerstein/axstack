@@ -9,6 +9,7 @@
     "quick": "node voice-interview.mjs --quick"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
     "openai": "^4.0.0"
   },
   "bin": {

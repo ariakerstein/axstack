@@ -15,6 +15,7 @@ import { spawn, execSync } from 'child_process';
 import { createReadStream, unlinkSync, existsSync, writeFileSync, mkdirSync } from 'fs';
 import { createInterface } from 'readline';
 import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -265,9 +266,8 @@ async function transcribeAudio(filepath) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function scoreAnswer(question, answer, questionType) {
-  console.log('🧠 Scoring against nSARl framework...\n');
-
-  const openai = new OpenAI();
+  const useClaude = !!process.env.ANTHROPIC_API_KEY;
+  console.log(`🧠 Scoring against nSARl framework (${useClaude ? 'Claude' : 'GPT-4'})...\n`);
 
   const systemPrompt = `You are an expert interview coach scoring behavioral interview answers.
 
@@ -300,16 +300,29 @@ CANDIDATE'S ANSWER:
 
 Score this answer and provide detailed feedback.`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    temperature: 0.7,
-  });
-
-  return response.choices[0].message.content;
+  if (useClaude) {
+    const anthropic = new Anthropic();
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages: [
+        { role: 'user', content: userPrompt },
+      ],
+    });
+    return response.content[0].text;
+  } else {
+    const openai = new OpenAI();
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+    });
+    return response.choices[0].message.content;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -437,11 +450,18 @@ const quick = args.includes('--quick');
 const typeIndex = args.indexOf('--type');
 const focusType = typeIndex !== -1 ? args[typeIndex + 1] : null;
 
-// Check for OpenAI API key
+// Check for API keys
 if (!process.env.OPENAI_API_KEY) {
-  console.log('\n❌ Missing OPENAI_API_KEY environment variable');
-  console.log('\nSet it with: export OPENAI_API_KEY=sk-...\n');
+  console.log('\n❌ Missing OPENAI_API_KEY (needed for Whisper transcription)');
+  console.log('Set it with: export OPENAI_API_KEY=sk-...\n');
   process.exit(1);
+}
+
+// Claude is optional - will fall back to GPT-4 for scoring
+if (process.env.ANTHROPIC_API_KEY) {
+  console.log('✓ Using Claude for scoring');
+} else {
+  console.log('ℹ Using GPT-4 for scoring (set ANTHROPIC_API_KEY to use Claude)');
 }
 
 // Check for sox
