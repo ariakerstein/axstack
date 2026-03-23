@@ -11,10 +11,75 @@ Interactive interview simulation that asks questions based on role type and seni
 | `/auto-interview` | Start a full interview simulation |
 | `/auto-interview quick` | 5-question rapid fire |
 | `/auto-interview [type]` | Focus on one question type (behavioral, product, strategy) |
+| `/auto-interview voice` | **Voice mode** - speak answers, get transcribed + scored |
 
 ---
 
-## How It Works
+## Voice Mode
+
+Practice with real-time voice recording, transcription, and AI scoring.
+
+### Setup
+
+```bash
+# Install dependencies
+brew install sox
+cd ~/.claude/skills/auto-interview  # or wherever you cloned axstack
+npm install
+
+# Set OpenAI API key (for Whisper transcription + GPT-4 scoring)
+export OPENAI_API_KEY=sk-...
+```
+
+### Run
+
+```bash
+node voice-interview.mjs          # Full 8-question session
+node voice-interview.mjs --quick  # 5-question rapid fire
+```
+
+### Flow
+
+```
+1. Select role (PM / GM) and level (IC / Manager / Director+)
+2. Question appears on screen
+3. Press ENTER to start recording
+4. Speak your answer (target: 60-90 seconds)
+5. Press ENTER to stop
+6. Whisper transcribes your answer
+7. GPT-4 scores against nSARl framework
+8. Review feedback, retry or continue
+9. Session summary at end
+```
+
+### Scoring Output
+
+```
+## SCORECARD
+
+| nSARl     | Score | Feedback                              |
+|-----------|-------|---------------------------------------|
+| n Nugget  | 2/5   | Weak hook - try "The time I..."      |
+| S Situation | 4/5 | Clear, brief - good                   |
+| A Actions | 3/5   | Too much "we" - use "I"               |
+| R Result  | 1/5   | NO NUMBERS - add metrics              |
+| l Lessons | 0/5   | Missing entirely                      |
+
+OVERALL: 10/25
+
+💡 REWRITE SUGGESTION:
+[AI-generated improved version using your content]
+```
+
+### Cost
+
+- Whisper API: ~$0.006/minute of audio
+- GPT-4o scoring: ~$0.01-0.03 per question
+- Full session (~10 min audio): ~$0.15-0.30
+
+---
+
+## How It Works (Text Mode)
 
 1. **Select Role Type**: Product, General Manager
 2. **Select Seniority**: IC, Manager, Director+/C-level

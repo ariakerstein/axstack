@@ -60,6 +60,7 @@ Interactive interview simulation that asks questions based on role and seniority
 - `/auto-interview` - Start full interview simulation
 - `/auto-interview quick` - 5-question rapid fire
 - `/auto-interview [type]` - Focus on one type (behavioral, product, strategy)
+- `/auto-interview voice` - **Voice mode** with recording, transcription, and AI scoring
 
 **Flow:**
 1. Select role type (Product Manager, General Manager)
@@ -67,6 +68,28 @@ Interactive interview simulation that asks questions based on role and seniority
 3. Answer questions from the bank
 4. Get feedback using nSARl framework
 5. Summary of strengths and areas to improve
+
+#### Voice Mode
+
+Speak your answers out loud, get them transcribed and scored:
+
+```bash
+# Setup
+brew install sox
+cd auto-interview && npm install
+export OPENAI_API_KEY=sk-...
+
+# Run
+node voice-interview.mjs          # Full session
+node voice-interview.mjs --quick  # 5 questions
+```
+
+**Features:**
+- Real-time recording with timer (target: 60-90 seconds)
+- Whisper API transcription
+- GPT-4 scoring against nSARl framework
+- Rewrite suggestions using your content
+- Session summary with all answers
 
 **Question Types:**
 - Behavioral (Leadership, Influence, Conflict, Customer Focus, Execution)

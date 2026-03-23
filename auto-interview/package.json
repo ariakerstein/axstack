@@ -1,0 +1,17 @@
+{
+  "name": "auto-interview-voice",
+  "version": "1.0.0",
+  "description": "Voice-based interview simulation with AI scoring",
+  "main": "voice-interview.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node voice-interview.mjs",
+    "quick": "node voice-interview.mjs --quick"
+  },
+  "dependencies": {
+    "openai": "^4.0.0"
+  },
+  "bin": {
+    "voice-interview": "./voice-interview.mjs"
+  }
+}
