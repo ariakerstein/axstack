@@ -1,6 +1,6 @@
-# ariaxe-stack
+# axstack
 
-Personal Claude Code skills for interview prep, career development, and productivity.
+Claude Code skills for interview prep, career development, and productivity.
 
 Inspired by [gstack](https://github.com/anthropics/gstack).
 
@@ -8,10 +8,11 @@ Inspired by [gstack](https://github.com/anthropics/gstack).
 
 ```bash
 # Clone to your Claude skills directory
-git clone https://github.com/ariaxe/ariaxe-stack.git ~/.claude/skills/ariaxe-stack
+git clone https://github.com/ariakerstein/axstack.git ~/.claude/skills/axstack
 
 # Or symlink specific skills
-ln -s ~/.claude/skills/ariaxe-stack/interview-prep ~/.claude/skills/interview-prep
+ln -s ~/.claude/skills/axstack/interview-prep ~/.claude/skills/interview-prep
+ln -s ~/.claude/skills/axstack/auto-interview ~/.claude/skills/auto-interview
 ```
 
 Then add to your `~/.claude/settings.local.json`:
@@ -20,7 +21,8 @@ Then add to your `~/.claude/settings.local.json`:
 {
   "permissions": {
     "allow": [
-      "Skill(interview-prep)"
+      "Skill(interview-prep)",
+      "Skill(auto-interview)"
     ]
   }
 }
@@ -49,6 +51,37 @@ Comprehensive interview preparation for GM, CPO, and Product leadership roles.
 1. Copy `interview-prep/SKILL.md` to your skills folder
 2. Add your stories to the Story Bank section
 3. Update TMAY with your intro
+
+### `/auto-interview`
+
+Interactive interview simulation that asks questions based on role and seniority.
+
+**Commands:**
+- `/auto-interview` - Start full interview simulation
+- `/auto-interview quick` - 5-question rapid fire
+- `/auto-interview [type]` - Focus on one type (behavioral, product, strategy)
+
+**Flow:**
+1. Select role type (Product Manager, General Manager)
+2. Select seniority (IC, Manager, Director+)
+3. Answer questions from the bank
+4. Get feedback using nSARl framework
+5. Summary of strengths and areas to improve
+
+**Question Types:**
+- Behavioral (Leadership, Influence, Conflict, Customer Focus, Execution)
+- Product Sense (Design, Strategy, Diagnosis)
+- Strategy (Market, Business Model, Vision)
+- Execution (Estimation, Metrics, Process)
+- Leadership (Team Building, Organizational, Executive Presence)
+
+**Question Mix by Level:**
+
+| Level | Behavioral | Product | Strategy | Leadership |
+|-------|------------|---------|----------|------------|
+| IC | 40% | 30% | 10% | 0% |
+| Manager | 30% | 25% | 15% | 15% |
+| Director+ | 20% | 20% | 25% | 25% |
 
 ## Frameworks
 
