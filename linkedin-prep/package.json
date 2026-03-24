@@ -11,7 +11,8 @@
     "intros": "node linkedin-prep.mjs intros"
   },
   "dependencies": {
-    "csv-parse": "^5.5.0"
+    "csv-parse": "^5.5.0",
+    "puppeteer": "^24.40.0"
   },
   "bin": {
     "linkedin-prep": "./linkedin-prep.mjs"

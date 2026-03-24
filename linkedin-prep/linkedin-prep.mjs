@@ -382,17 +382,25 @@ switch (command) {
     showStats();
     break;
 
+  case 'export':
+  case 'login':
+    // Launch the browser-based export flow
+    import('./linkedin-export.mjs');
+    break;
+
   default:
     console.log(`
 LinkedIn Prep - Find warm intros from your network
 
 Commands:
+  export           Open LinkedIn to download your connections (browser)
   import <csv>     Import LinkedIn connections export
   intros <company> Find warm intros to a company
   search <query>   Search connections by name, company, or title
   stats            Show network statistics
 
 Examples:
+  node linkedin-prep.mjs export
   node linkedin-prep.mjs import ~/Downloads/Connections.csv
   node linkedin-prep.mjs intros Stripe
   node linkedin-prep.mjs search "product manager"
