@@ -162,30 +162,38 @@ Pitch deck review for investor-readiness. Premise-first analysis with Kawasaki 1
 ```
 ## SCORECARD
 
-| Category           | Score | Notes                                    |
-|--------------------|-------|------------------------------------------|
-| PREMISE (15)       |       |                                          |
-| Clarity            | 3/3   | Clear one-liner, no jargon              |
-| Problem Urgency    | 3/3   | Painkiller, not vitamin                 |
-| Believability      | 2/3   | Strong team, needs more traction        |
-| Upside             | 3/3   | Venture-scale if it works               |
-| Non-consensus      | 2/3   | Wedge clear, insight could be sharper   |
-| CONTENT (10)       |       |                                          |
-| GTM Clarity        | 2/3   | Channel identified, CAC unclear         |
-| Traction           | 3/3   | Numbers with timeframes ✓               |
-| Business Model     | 2/2   | Single clear SKU                        |
-| The Ask            | 2/2   | $500K, milestones defined               |
-| STRUCTURE (5)      |       |                                          |
-| Kawasaki           | 3/3   | 10 slides, fonts pass                   |
-| Visual             | 2/2   | Clean hierarchy                         |
-|                    |       |                                          |
-| **TOTAL**          |**27/30**| **INVESTOR READY**                    |
+| Category | Score | Notes |
+|----------|-------|-------|
+| **PREMISE (15)** | | |
+| Clarity | X/3 | [One-line assessment] |
+| Problem Urgency | X/3 | [Painkiller or vitamin?] |
+| Believability | X/3 | [Team + traction signal] |
+| Upside | X/3 | [Venture-scale?] |
+| Non-consensus | X/3 | [Contrarian bet clear?] |
+| **CONTENT (10)** | | |
+| GTM Clarity | X/3 | [How acquire customers?] |
+| Traction | X/3 | [Numbers + timeframes?] |
+| Business Model | X/2 | [Clear single model?] |
+| The Ask | X/2 | [Specific amount + use?] |
+| **STRUCTURE (5)** | | |
+| Kawasaki | X/3 | [Slides, fonts, density] |
+| Visual | X/2 | [Hierarchy, consistency] |
+| | | |
+| **TOTAL** | **X/30** | **[VERDICT]** |
+
+---
 
 ## TOP 3 FIXES
 
-1. **Believability**: Add one more traction proof point
-2. **Non-consensus**: Sharpen the contrarian insight
-3. **GTM**: Add target CAC or channel experiment results
+1. **[Category]**: [Specific, actionable fix]
+2. **[Category]**: [Specific, actionable fix]
+3. **[Category]**: [Specific, actionable fix]
+
+---
+
+## DETAILED NOTES
+
+[Expand on any scores that need explanation. Keep brief.]
 ```
 
 </details>
