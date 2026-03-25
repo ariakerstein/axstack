@@ -2,7 +2,7 @@
 
 Claude Code skills for interview prep, fundraising, career development, and productivity.
 
-Inspired by [gstack](https://github.com/anthropics/gstack).
+Inspired by [gstack](https://github.com/garrytan/gstack).
 
 ## Quick Start
 
