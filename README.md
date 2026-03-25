@@ -155,6 +155,10 @@ Pitch deck review for investor-readiness. Premise-first analysis with Kawasaki 1
 - `/fundraise premise` - Just the believability check
 - `/fundraise objections` - Generate investor Q&A prep
 - `/fundraise sources` - Audit claim sources
+- `/fundraise feedback add "<quote>"` - Log investor feedback
+- `/fundraise feedback list` - Show all logged feedback
+- `/fundraise feedback analyze` - Pattern analysis across all feedback
+- `/fundraise feedback clear` - Reset feedback log
 
 <details>
 <summary><strong>Example output</strong></summary>
@@ -215,6 +219,13 @@ Pitch deck review for investor-readiness. Premise-first analysis with Kawasaki 1
 - Anti-patterns table
 - Investor Q&A checklist
 - Source quality tiers
+- **Investor feedback tracking** - Log quotes, auto-detect themes, analyze patterns
+
+**Feedback Workflow:**
+1. Before meetings: `/fundraise review` to know weak spots
+2. After each meeting: `/fundraise feedback add "GTM was unclear"`
+3. After 3-5 meetings: `/fundraise feedback analyze` to find patterns
+4. Iterate deck, re-review, track progress
 
 **Philosophy:**
 1. Premise before polish
