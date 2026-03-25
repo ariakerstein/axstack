@@ -150,11 +150,47 @@ Find warm intros to target companies by analyzing your LinkedIn connections.
 
 Pitch deck review for investor-readiness. Premise-first analysis with Kawasaki 10/20/30 as guardrails.
 
+![fundraise demo](assets/fundraise-demo.gif)
+
 **Commands:**
 - `/fundraise review` - Full deck audit (premise → content → structure)
 - `/fundraise premise` - Just the believability check
 - `/fundraise objections` - Generate investor Q&A prep
 - `/fundraise sources` - Audit claim sources
+
+<details>
+<summary><strong>Example output</strong></summary>
+
+```
+## SCORECARD
+
+| Category           | Score | Notes                                    |
+|--------------------|-------|------------------------------------------|
+| PREMISE (15)       |       |                                          |
+| Clarity            | 3/3   | Clear one-liner, no jargon              |
+| Problem Urgency    | 3/3   | Painkiller, not vitamin                 |
+| Believability      | 2/3   | Strong team, needs more traction        |
+| Upside             | 3/3   | Venture-scale if it works               |
+| Non-consensus      | 2/3   | Wedge clear, insight could be sharper   |
+| CONTENT (10)       |       |                                          |
+| GTM Clarity        | 2/3   | Channel identified, CAC unclear         |
+| Traction           | 3/3   | Numbers with timeframes ✓               |
+| Business Model     | 2/2   | Single clear SKU                        |
+| The Ask            | 2/2   | $500K, milestones defined               |
+| STRUCTURE (5)      |       |                                          |
+| Kawasaki           | 3/3   | 10 slides, fonts pass                   |
+| Visual             | 2/2   | Clean hierarchy                         |
+|                    |       |                                          |
+| **TOTAL**          |**27/30**| **INVESTOR READY**                    |
+
+## TOP 3 FIXES
+
+1. **Believability**: Add one more traction proof point
+2. **Non-consensus**: Sharpen the contrarian insight
+3. **GTM**: Add target CAC or channel experiment results
+```
+
+</details>
 
 **Scoring (30 pts):**
 
