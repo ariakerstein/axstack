@@ -11,11 +11,13 @@ export default function AboutPage() {
 
         {/* Header */}
         <div className="flex items-center gap-6 mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center font-bold text-2xl">
-            AK
-          </div>
+          <img
+            src="/ari.png"
+            alt="Ari Akerstein"
+            className="w-20 h-20 rounded-full object-cover"
+          />
           <div>
-            <h1 className="text-3xl font-bold">Ari Kerstein</h1>
+            <h1 className="text-3xl font-bold">Ari Akerstein</h1>
             <p className="text-slate-400">Serial founder • Ex-Facebook PM</p>
           </div>
         </div>

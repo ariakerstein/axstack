@@ -157,9 +157,9 @@ export default function Home() {
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-sm text-slate-500 mb-4">BUILT BY</p>
           <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center font-bold text-lg">AK</div>
+            <img src="/ari.png" alt="Ari Akerstein" className="w-12 h-12 rounded-full object-cover" />
             <div className="text-left">
-              <p className="font-semibold">Ari Kerstein</p>
+              <p className="font-semibold">Ari Akerstein</p>
               <p className="text-sm text-slate-400">Serial founder • Ex-Facebook PM • Cancer Hacker Lab</p>
             </div>
           </div>
