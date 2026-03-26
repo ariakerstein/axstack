@@ -3,6 +3,19 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+interface CategoryDetails {
+  key: string
+  label: string
+  score: number
+  max: number
+  note: string
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 export default function AuditPage() {
   const [deckUrl, setDeckUrl] = useState('')
   const [deckContent, setDeckContent] = useState('')
@@ -16,6 +29,12 @@ export default function AuditPage() {
   } | null>(null)
   const [error, setError] = useState('')
   const [inputMode, setInputMode] = useState<'url' | 'paste'>('url')
+
+  // Side panel state
+  const [selectedCategory, setSelectedCategory] = useState<CategoryDetails | null>(null)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [isChatting, setIsChatting] = useState(false)
 
   const handleAudit = async () => {
     if (!deckUrl && !deckContent) {
@@ -57,6 +76,49 @@ export default function AuditPage() {
     if (verdict.includes('Almost')) return 'text-yellow-400'
     if (verdict.includes('Needs')) return 'text-orange-400'
     return 'text-red-400'
+  }
+
+  const openCategoryPanel = (key: string, value: { score: number; max: number; note: string }) => {
+    const label = key.replace(/([A-Z])/g, ' $1').trim()
+    setSelectedCategory({ key, label, ...value })
+    setChatMessages([{
+      role: 'assistant',
+      content: `**${label}**: ${value.score}/${value.max}\n\n${value.note}\n\nAsk me how to improve this score.`
+    }])
+    setChatInput('')
+  }
+
+  const handleCategoryChat = async () => {
+    if (!chatInput.trim() || !selectedCategory) return
+
+    const userMessage = chatInput.trim()
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    setChatInput('')
+    setIsChatting(true)
+
+    try {
+      const response = await fetch('/api/audit-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: selectedCategory.label,
+          currentScore: selectedCategory.score,
+          maxScore: selectedCategory.max,
+          currentNote: selectedCategory.note,
+          deckContent: deckContent || deckUrl,
+          question: userMessage,
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to get response')
+
+      const data = await response.json()
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }])
+    } catch {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, something went wrong. Try again.' }])
+    } finally {
+      setIsChatting(false)
+    }
   }
 
   if (isAuditing) {
@@ -203,7 +265,11 @@ export default function AuditPage() {
                   </thead>
                   <tbody>
                     {Object.entries(result.scoreBreakdown).map(([key, value]) => (
-                      <tr key={key} className="border-b border-slate-700/50">
+                      <tr
+                        key={key}
+                        className="border-b border-slate-700/50 hover:bg-slate-700/50 cursor-pointer transition-colors"
+                        onClick={() => openCategoryPanel(key, value)}
+                      >
                         <td className="py-3 px-4 capitalize">{key.replace(/([A-Z])/g, ' $1')}</td>
                         <td className="py-3 px-4 text-center">
                           <span className={value.score >= value.max * 0.8 ? 'text-green-400' : value.score >= value.max * 0.5 ? 'text-yellow-400' : 'text-red-400'}>
@@ -259,6 +325,78 @@ export default function AuditPage() {
           </div>
         )}
       </div>
+
+      {/* Side Panel */}
+      {selectedCategory && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setSelectedCategory(null)}
+          />
+
+          {/* Panel */}
+          <div className="fixed right-0 top-0 h-full w-full max-w-md bg-slate-900 border-l border-slate-700 z-50 flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-700">
+              <div>
+                <h3 className="font-semibold capitalize">{selectedCategory.label}</h3>
+                <p className={`text-sm ${selectedCategory.score >= selectedCategory.max * 0.8 ? 'text-green-400' : selectedCategory.score >= selectedCategory.max * 0.5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {selectedCategory.score}/{selectedCategory.max}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="text-slate-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Chat messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {chatMessages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`${
+                    msg.role === 'user'
+                      ? 'bg-teal-500/20 ml-8'
+                      : 'bg-slate-800 mr-8'
+                  } p-3 rounded-lg text-sm whitespace-pre-wrap`}
+                >
+                  {msg.content}
+                </div>
+              ))}
+              {isChatting && (
+                <div className="bg-slate-800 mr-8 p-3 rounded-lg text-sm text-slate-400">
+                  Thinking...
+                </div>
+              )}
+            </div>
+
+            {/* Input */}
+            <div className="p-4 border-t border-slate-700">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCategoryChat()}
+                  placeholder="Ask how to improve..."
+                  className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                />
+                <button
+                  onClick={handleCategoryChat}
+                  disabled={!chatInput.trim() || isChatting}
+                  className="bg-teal-500 hover:bg-teal-600 disabled:bg-slate-700 disabled:text-slate-500 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </main>
   )
 }
