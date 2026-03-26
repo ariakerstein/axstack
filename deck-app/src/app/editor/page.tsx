@@ -945,6 +945,21 @@ export default function EditorPage() {
                       {isSaving ? 'Saving...' : currentDeckId ? 'Update' : 'Save'}
                     </button>
                   </div>
+
+                  {/* Sign in prompt for anonymous users */}
+                  {isAnonymous && (
+                    <div className="mt-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                      <p className="text-slate-400 text-xs mb-2">
+                        Decks saved to this browser only.
+                      </p>
+                      <button
+                        onClick={() => setShowAuthModal(true)}
+                        className="text-teal-400 hover:text-teal-300 text-xs font-medium"
+                      >
+                        Sign in to access from anywhere →
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Saved Decks */}
