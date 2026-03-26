@@ -7,7 +7,7 @@ export default function Home() {
       <section className="flex flex-col items-center justify-center px-8 pt-20 pb-16">
         <div className="text-center max-w-3xl">
           <p className="text-teal-400 text-sm font-medium uppercase tracking-wide mb-4">
-            Used by 500+ founders
+            From Cancer Hacker Lab
           </p>
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Prompt Deck
@@ -40,24 +40,23 @@ export default function Home() {
       {/* Social Proof */}
       <section className="border-y border-slate-800 py-8 px-8">
         <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <p className="text-3xl font-bold text-white">2,847</p>
-              <p className="text-sm text-slate-400">Decks generated</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-white">$47M</p>
-              <p className="text-sm text-slate-400">Raised by users</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-white">4.8/5</p>
-              <p className="text-sm text-slate-400">Founder rating</p>
-            </div>
+          <div className="grid grid-cols-3 gap-8 text-center mb-6">
             <div>
               <p className="text-3xl font-bold text-white">5 min</p>
-              <p className="text-sm text-slate-400">Avg. time to deck</p>
+              <p className="text-sm text-slate-400">Time to deck</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">50+</p>
+              <p className="text-sm text-slate-400">Founders served</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">$75M+</p>
+              <p className="text-sm text-slate-400">Raised by CHL portfolio</p>
             </div>
           </div>
+          <p className="text-center text-sm text-slate-500">
+            Used by founders and builders at Google, Facebook, Included Health, MIT, Stanford
+          </p>
         </div>
       </section>
 
@@ -153,7 +152,7 @@ export default function Home() {
       {/* CTA */}
       <section className="py-20 px-8 text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to build your deck?</h2>
-        <p className="text-slate-400 mb-8">Join 500+ founders who've used Prompt Deck to nail their pitch.</p>
+        <p className="text-slate-400 mb-8">6 questions. 5 minutes. An investor-ready deck.</p>
         <Link
           href="/create"
           className="inline-block bg-teal-500 hover:bg-teal-600 text-white text-xl font-semibold px-8 py-4 rounded-lg transition-colors"

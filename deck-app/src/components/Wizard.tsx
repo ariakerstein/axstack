@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -10,28 +10,28 @@ const QUESTIONS = [
     question: 'What do you do in one sentence?',
     placeholder: 'We help [X] do [Y] by [Z]',
     hint: 'Be specific. "We help cancer patients get second opinions in 24 hours for $99"',
-    type: 'text',
+    slideIndex: 0,
   },
   {
     id: 'desperatePerson',
     question: 'Who is desperate for this?',
     placeholder: 'e.g., Mike, a son coordinating his mom\'s cancer care from 500 miles away',
-    hint: 'Name a specific person or title, not a category like "enterprises"',
-    type: 'text',
+    hint: 'Name a specific person, not a category like "enterprises"',
+    slideIndex: 1,
   },
   {
     id: 'currentSolution',
     question: 'What are they doing today without you?',
     placeholder: 'How do they currently solve this problem? What\'s painful about it?',
     hint: 'This reveals if you\'re a painkiller or vitamin',
-    type: 'textarea',
+    slideIndex: 1,
   },
   {
     id: 'unfairAdvantage',
     question: 'What\'s your unfair advantage?',
     placeholder: 'Domain expertise, traction, unique insight, credentials...',
     hint: 'Why will YOU win? Ex-Google? Built this before? 1000 users already?',
-    type: 'text',
+    slideIndex: 8,
   },
   {
     id: 'businessModel',
@@ -45,6 +45,7 @@ const QUESTIONS = [
       { value: 'marketplace', label: 'Marketplace (take rate)' },
       { value: 'enterprise', label: 'Enterprise sales (contracts)' },
     ],
+    slideIndex: 5,
   },
   {
     id: 'raise',
@@ -52,51 +53,15 @@ const QUESTIONS = [
     placeholder: '',
     hint: 'Format: "$500K to get 1,000 paying customers"',
     type: 'raise',
+    slideIndex: 9,
   },
 ]
 
-// Validation rules - returns warning message or null if valid
-const VALIDATIONS: Record<string, (value: string) => string | null> = {
-  oneLiner: (value) => {
-    const lower = value.toLowerCase()
-    if (value.length < 20) return 'Too short. Be more specific about what you do.'
-    if (!value.includes(' ')) return 'Use a full sentence.'
-    if (lower.includes('platform') && !lower.includes('for')) return '"Platform" is vague. Platform for whom? To do what?'
-    if (lower.includes('help') && !lower.includes('by')) return 'How do you help them? Add the mechanism.'
-    if (lower.includes('ai') && value.length < 40) return '"AI" alone isn\'t a differentiator. What does your AI specifically do?'
-    return null
-  },
-  desperatePerson: (value) => {
-    const lower = value.toLowerCase()
-    const vagueTerms = ['enterprises', 'companies', 'businesses', 'users', 'customers', 'people', 'everyone']
-    for (const term of vagueTerms) {
-      if (lower === term || lower.startsWith(term + ' ')) {
-        return `"${term}" is a category, not a person. Name someone specific, like "Sarah, a CFO at a Series B startup."`
-      }
-    }
-    if (value.length < 15) return 'Too vague. Describe a specific person with their context.'
-    if (!value.includes(',') && value.length < 30) return 'Add context. Who are they? What\'s their situation?'
-    return null
-  },
-  currentSolution: (value) => {
-    const lower = value.toLowerCase()
-    if (value.length < 30) return 'Too short. Describe the pain in detail.'
-    if (lower.includes('nothing') && value.length < 50) return '"Nothing" is rarely true. What workaround do they use? Excel? Manual process?'
-    if (!lower.includes('time') && !lower.includes('cost') && !lower.includes('pain') && !lower.includes('frustrat') && !lower.includes('hour') && !lower.includes('week') && !lower.includes('$') && !lower.includes('expensive')) {
-      return 'Where\'s the pain? Add specifics: time wasted, money lost, frustration.'
-    }
-    return null
-  },
-  unfairAdvantage: (value) => {
-    const lower = value.toLowerCase()
-    if (value.length < 15) return 'Too short. What makes YOU the one to build this?'
-    if (lower.includes('passionate') || lower.includes('love')) return '"Passionate" isn\'t an advantage. What have you built? What do you know?'
-    if (lower.includes('first') && !lower.includes('mover')) return 'Being first doesn\'t matter. Why can\'t others copy you?'
-    if (!lower.includes('ex-') && !lower.includes('built') && !lower.includes('led') && !lower.includes('founded') && !lower.includes('years') && !lower.includes('users') && !lower.includes('customers')) {
-      return 'Add credentials: ex-Company, built X, or traction numbers.'
-    }
-    return null
-  },
+const BUSINESS_MODEL_LABELS: Record<string, string> = {
+  per_transaction: 'Per transaction',
+  subscription: 'Subscription',
+  marketplace: 'Marketplace',
+  enterprise: 'Enterprise sales',
 }
 
 export default function Wizard() {
@@ -107,8 +72,7 @@ export default function Wizard() {
   const [raiseMilestone, setRaiseMilestone] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState('')
-  const [warning, setWarning] = useState<string | null>(null)
-  const [dismissedWarning, setDismissedWarning] = useState(false)
+  const [currentSlide, setCurrentSlide] = useState(0)
 
   const currentQuestion = QUESTIONS[step]
   const isLastStep = step === QUESTIONS.length - 1
@@ -116,45 +80,142 @@ export default function Wizard() {
     ? (raiseAmount && raiseMilestone ? 'filled' : '')
     : answers[currentQuestion.id] || ''
 
-  // Check for warnings when answer changes
-  const checkWarning = (value: string) => {
-    const validator = VALIDATIONS[currentQuestion.id]
-    if (validator) {
-      const result = validator(value)
-      setWarning(result)
-      setDismissedWarning(false)
-    }
-  }
+  // Generate live preview HTML based on current answers
+  const previewHtml = useMemo(() => {
+    const companyName = answers.oneLiner?.split(' ')[0] || 'Your Company'
+    const oneLiner = answers.oneLiner || 'We help [customers] do [outcome] by [method]'
+    const desperatePerson = answers.desperatePerson || '[Your ideal customer]'
+    const currentSolution = answers.currentSolution || '[Current painful solution]'
+    const unfairAdvantage = answers.unfairAdvantage || '[Your unique advantage]'
+    const businessModel = answers.businessModel ? BUSINESS_MODEL_LABELS[answers.businessModel] : '[Revenue model]'
+    const raise = raiseAmount || '$XXX'
+    const milestone = raiseMilestone || '[Key milestone]'
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+    section { scroll-snap-align: start; min-height: 100vh; }
+    body { margin: 0; background: #f8fafc; }
+  </style>
+</head>
+<body class="text-gray-900">
+  <!-- Slide 0: Title -->
+  <section id="slide-0" class="flex flex-col items-center justify-center p-12 bg-white">
+    <h1 class="text-5xl font-bold text-gray-900 mb-6 text-center">${companyName}</h1>
+    <p class="text-2xl text-gray-600 text-center max-w-2xl">${oneLiner}</p>
+  </section>
+
+  <!-- Slide 1: Problem -->
+  <section id="slide-1" class="flex flex-col items-center justify-center p-12 bg-gray-50">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">The Problem</h2>
+    <div class="max-w-2xl space-y-6">
+      <p class="text-2xl text-gray-700"><strong>Who:</strong> ${desperatePerson}</p>
+      <p class="text-2xl text-gray-700"><strong>Pain:</strong> ${currentSolution}</p>
+    </div>
+  </section>
+
+  <!-- Slide 2: Why Now -->
+  <section id="slide-2" class="flex flex-col items-center justify-center p-12 bg-white">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">Why Now</h2>
+    <p class="text-2xl text-gray-600 text-center max-w-2xl">Market timing and trends that make this the right moment...</p>
+  </section>
+
+  <!-- Slide 3: Solution -->
+  <section id="slide-3" class="flex flex-col items-center justify-center p-12 bg-gray-50">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">The Solution</h2>
+    <p class="text-2xl text-gray-700 text-center max-w-2xl">${oneLiner}</p>
+  </section>
+
+  <!-- Slide 4: How It Works -->
+  <section id="slide-4" class="flex flex-col items-center justify-center p-12 bg-white">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">How It Works</h2>
+    <div class="flex gap-8">
+      <div class="text-center"><div class="text-4xl font-bold text-teal-600">1</div><p class="text-xl text-gray-600 mt-2">Step one</p></div>
+      <div class="text-center"><div class="text-4xl font-bold text-teal-600">2</div><p class="text-xl text-gray-600 mt-2">Step two</p></div>
+      <div class="text-center"><div class="text-4xl font-bold text-teal-600">3</div><p class="text-xl text-gray-600 mt-2">Step three</p></div>
+    </div>
+  </section>
+
+  <!-- Slide 5: Business Model -->
+  <section id="slide-5" class="flex flex-col items-center justify-center p-12 bg-gray-50">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">Business Model</h2>
+    <p class="text-3xl text-gray-900 font-semibold">${businessModel}</p>
+  </section>
+
+  <!-- Slide 6: Traction -->
+  <section id="slide-6" class="flex flex-col items-center justify-center p-12 bg-white">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">Traction</h2>
+    <p class="text-2xl text-gray-600 text-center">Metrics and milestones achieved so far...</p>
+  </section>
+
+  <!-- Slide 7: Competition -->
+  <section id="slide-7" class="flex flex-col items-center justify-center p-12 bg-gray-50">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">Competition</h2>
+    <p class="text-2xl text-gray-600 text-center">How you stack up against alternatives...</p>
+  </section>
+
+  <!-- Slide 8: Team -->
+  <section id="slide-8" class="flex flex-col items-center justify-center p-12 bg-white">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">Why Us</h2>
+    <p class="text-2xl text-gray-700 text-center max-w-2xl">${unfairAdvantage}</p>
+  </section>
+
+  <!-- Slide 9: The Ask -->
+  <section id="slide-9" class="flex flex-col items-center justify-center p-12 bg-gray-50">
+    <h2 class="text-4xl font-bold text-teal-600 mb-8">The Ask</h2>
+    <p class="text-3xl text-gray-900 font-semibold mb-4">Raising ${raise}</p>
+    <p class="text-2xl text-gray-600">To achieve: ${milestone}</p>
+  </section>
+</body>
+</html>`
+  }, [answers, raiseAmount, raiseMilestone])
+
+  // Single slide HTML for preview - extract slide using regex (SSR-safe)
+  const slideHtml = useMemo(() => {
+    // Use regex to extract the specific slide section (avoids DOMParser SSR issues)
+    const slideRegex = new RegExp(`<section id="slide-${currentSlide}"[^>]*>([\\s\\S]*?)</section>`)
+    const match = previewHtml.match(slideRegex)
+
+    if (!match) return previewHtml
+
+    const slideContent = match[0]
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { margin: 0; } section { min-height: 100vh; display: flex; }</style>
+</head>
+<body>${slideContent}</body>
+</html>`
+  }, [previewHtml, currentSlide])
 
   const handleNext = () => {
-    // If there's a warning and user hasn't dismissed it, show it
-    if (warning && !dismissedWarning) {
-      return
-    }
-
     if (currentQuestion.type === 'raise') {
       setAnswers({ ...answers, raiseAmount, raiseMilestone })
     }
-
-    // Reset warning state for next question
-    setWarning(null)
-    setDismissedWarning(false)
 
     if (isLastStep) {
       handleGenerate()
     } else {
       setStep(step + 1)
+      // Jump to relevant slide
+      const nextQuestion = QUESTIONS[step + 1]
+      if (nextQuestion) {
+        setCurrentSlide(nextQuestion.slideIndex)
+      }
     }
   }
 
   const handleBack = () => {
-    setWarning(null)
-    setDismissedWarning(false)
     setStep(step - 1)
-  }
-
-  const handleProceedAnyway = () => {
-    setDismissedWarning(true)
+    const prevQuestion = QUESTIONS[step - 1]
+    if (prevQuestion) {
+      setCurrentSlide(prevQuestion.slideIndex)
+    }
   }
 
   const handleGenerate = async () => {
@@ -180,10 +241,7 @@ export default function Wizard() {
       }
 
       const data = await response.json()
-
-      // Store in localStorage for preview page
       localStorage.setItem('generatedDeck', JSON.stringify(data))
-
       router.push('/editor')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to generate deck'
@@ -194,7 +252,6 @@ export default function Wizard() {
 
   const updateAnswer = (value: string) => {
     setAnswers({ ...answers, [currentQuestion.id]: value })
-    checkWarning(value)
   }
 
   if (isGenerating) {
@@ -202,163 +259,161 @@ export default function Wizard() {
       <div className="min-h-screen flex flex-col items-center justify-center p-8">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-400 mb-8"></div>
         <h2 className="text-2xl font-semibold mb-4">Generating your deck...</h2>
-        <p className="text-slate-400">This takes about 30 seconds</p>
+        <p className="text-slate-400">Polishing with AI. About 30 seconds.</p>
       </div>
     )
   }
 
-  const canProceed = currentAnswer && (!warning || dismissedWarning)
+  const canProceed = !!currentAnswer
 
   return (
-    <div className="min-h-screen flex flex-col p-8">
-      {/* Back to home */}
-      <div className="max-w-2xl mx-auto w-full mb-4">
-        <Link href="/" className="text-teal-400 hover:underline text-sm">
-          ← Back to home
-        </Link>
-      </div>
-
-      {/* Progress */}
-      <div className="max-w-2xl mx-auto w-full mb-8">
-        <div className="flex justify-between text-sm text-slate-400 mb-2">
-          <span>Question {step + 1} of {QUESTIONS.length}</span>
-          <span>{Math.round(((step + 1) / QUESTIONS.length) * 100)}%</span>
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <header className="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-teal-400 hover:underline text-sm">← Home</Link>
+          <h1 className="text-lg font-semibold">Create Your Deck</h1>
         </div>
-        <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-teal-400 transition-all duration-300"
-            style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }}
-          />
+        <div className="text-sm text-slate-400">
+          Question {step + 1} of {QUESTIONS.length}
         </div>
-      </div>
+      </header>
 
-      {/* Question */}
-      <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          {currentQuestion.question}
-        </h2>
-        <p className="text-slate-400 text-center mb-8">
-          {currentQuestion.hint}
-        </p>
+      {/* Main: Split View */}
+      <div className="flex-1 flex flex-col md:flex-row">
+        {/* Left: Live Preview */}
+        <div className="flex-1 md:w-3/5 flex flex-col bg-slate-100">
+          <div className="flex-1 relative">
+            <iframe srcDoc={slideHtml} className="w-full h-full border-0" title="Deck Preview" />
+          </div>
 
-        {/* Input */}
-        {currentQuestion.type === 'text' && (
-          <input
-            type="text"
-            value={answers[currentQuestion.id] || ''}
-            onChange={(e) => updateAnswer(e.target.value)}
-            placeholder={currentQuestion.placeholder}
-            className={`w-full bg-slate-800 border rounded-lg px-4 py-4 text-xl focus:outline-none ${
-              warning && !dismissedWarning
-                ? 'border-yellow-500 focus:border-yellow-400'
-                : 'border-slate-700 focus:border-teal-400'
-            }`}
-            autoFocus
-          />
-        )}
-
-        {currentQuestion.type === 'textarea' && (
-          <textarea
-            value={answers[currentQuestion.id] || ''}
-            onChange={(e) => updateAnswer(e.target.value)}
-            placeholder={currentQuestion.placeholder}
-            rows={4}
-            className={`w-full bg-slate-800 border rounded-lg px-4 py-4 text-xl focus:outline-none resize-none ${
-              warning && !dismissedWarning
-                ? 'border-yellow-500 focus:border-yellow-400'
-                : 'border-slate-700 focus:border-teal-400'
-            }`}
-            autoFocus
-          />
-        )}
-
-        {currentQuestion.type === 'select' && (
-          <div className="w-full space-y-3">
-            {currentQuestion.options?.map((option) => (
+          {/* Slide Navigation */}
+          <div className="bg-slate-200 border-t border-slate-300 px-6 py-3">
+            <div className="flex items-center justify-center gap-4">
               <button
-                key={option.value}
-                onClick={() => updateAnswer(option.value)}
-                className={`w-full text-left px-4 py-4 rounded-lg border transition-colors ${
-                  answers[currentQuestion.id] === option.value
-                    ? 'border-teal-400 bg-teal-400/10'
-                    : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+                disabled={currentSlide === 0}
+                className="px-3 py-1 rounded text-sm disabled:text-slate-400 text-slate-600 hover:text-slate-900"
+              >
+                ◀ Prev
+              </button>
+              <span className="text-slate-600 text-sm">{currentSlide + 1} / 10</span>
+              <button
+                onClick={() => setCurrentSlide(Math.min(9, currentSlide + 1))}
+                disabled={currentSlide === 9}
+                className="px-3 py-1 rounded text-sm disabled:text-slate-400 text-slate-600 hover:text-slate-900"
+              >
+                Next ▶
+              </button>
+            </div>
+            <div className="flex justify-center gap-2 mt-2">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentSlide(i)}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    i === currentSlide ? 'bg-teal-500' : 'bg-slate-400 hover:bg-slate-500'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Questions */}
+        <div className="md:w-2/5 bg-slate-800 border-l border-slate-700 flex flex-col">
+          {/* Progress */}
+          <div className="px-6 pt-6">
+            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-teal-400 transition-all duration-300"
+                style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Question */}
+          <div className="flex-1 p-6 flex flex-col">
+            <h2 className="text-2xl font-bold mb-2">{currentQuestion.question}</h2>
+            <p className="text-slate-400 text-sm mb-6">{currentQuestion.hint}</p>
+
+            {/* Input */}
+            {!currentQuestion.type && (
+              <input
+                type="text"
+                value={answers[currentQuestion.id] || ''}
+                onChange={(e) => updateAnswer(e.target.value)}
+                placeholder={currentQuestion.placeholder}
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-4 text-lg focus:outline-none focus:border-teal-400"
+                autoFocus
+              />
+            )}
+
+            {currentQuestion.type === 'select' && (
+              <div className="space-y-2">
+                {currentQuestion.options?.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => updateAnswer(option.value)}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                      answers[currentQuestion.id] === option.value
+                        ? 'border-teal-400 bg-teal-400/10'
+                        : 'border-slate-600 bg-slate-900 hover:border-slate-500'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {currentQuestion.type === 'raise' && (
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  value={raiseAmount}
+                  onChange={(e) => setRaiseAmount(e.target.value)}
+                  placeholder="Amount (e.g., $500K)"
+                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-4 text-lg focus:outline-none focus:border-teal-400"
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  value={raiseMilestone}
+                  onChange={(e) => setRaiseMilestone(e.target.value)}
+                  placeholder="Milestone (e.g., 1,000 paying customers)"
+                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-4 text-lg focus:outline-none focus:border-teal-400"
+                />
+              </div>
+            )}
+
+            {error && <p className="text-red-400 mt-4">{error}</p>}
+
+            {/* Navigation */}
+            <div className="mt-auto pt-6 flex justify-between">
+              <button
+                onClick={handleBack}
+                disabled={step === 0}
+                className={`px-6 py-3 rounded-lg transition-colors ${
+                  step === 0 ? 'text-slate-600 cursor-not-allowed' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {option.label}
+                Back
               </button>
-            ))}
+              <button
+                onClick={handleNext}
+                disabled={!canProceed}
+                className={`px-8 py-3 rounded-lg font-semibold transition-colors ${
+                  canProceed
+                    ? 'bg-teal-500 hover:bg-teal-600 text-white'
+                    : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                }`}
+              >
+                {isLastStep ? 'Generate Deck' : 'Next'}
+              </button>
+            </div>
           </div>
-        )}
-
-        {currentQuestion.type === 'raise' && (
-          <div className="w-full space-y-4">
-            <input
-              type="text"
-              value={raiseAmount}
-              onChange={(e) => setRaiseAmount(e.target.value)}
-              placeholder="Amount (e.g., $500K)"
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-4 text-xl focus:outline-none focus:border-teal-400"
-              autoFocus
-            />
-            <input
-              type="text"
-              value={raiseMilestone}
-              onChange={(e) => setRaiseMilestone(e.target.value)}
-              placeholder="Milestone (e.g., 1,000 paying customers)"
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-4 text-xl focus:outline-none focus:border-teal-400"
-            />
-          </div>
-        )}
-
-        {/* Warning */}
-        {warning && !dismissedWarning && (
-          <div className="w-full mt-4 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg">
-            <p className="text-yellow-400 mb-3">{warning}</p>
-            <button
-              onClick={handleProceedAnyway}
-              className="text-sm text-slate-400 hover:text-white underline"
-            >
-              Proceed anyway
-            </button>
-          </div>
-        )}
-
-        {/* Dismissed warning indicator */}
-        {warning && dismissedWarning && (
-          <p className="text-sm text-yellow-500/70 mt-4">
-            Warning noted. You can proceed.
-          </p>
-        )}
-
-        {error && (
-          <p className="text-red-400 mt-4">{error}</p>
-        )}
-      </div>
-
-      {/* Navigation */}
-      <div className="max-w-2xl mx-auto w-full flex justify-between mt-8">
-        <button
-          onClick={handleBack}
-          disabled={step === 0}
-          className={`px-6 py-3 rounded-lg transition-colors ${
-            step === 0
-              ? 'text-slate-600 cursor-not-allowed'
-              : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          Back
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={!canProceed}
-          className={`px-8 py-3 rounded-lg font-semibold transition-colors ${
-            canProceed
-              ? 'bg-teal-500 hover:bg-teal-600 text-white'
-              : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-          }`}
-        >
-          {isLastStep ? 'Generate Deck' : 'Next'}
-        </button>
+        </div>
       </div>
     </div>
   )
