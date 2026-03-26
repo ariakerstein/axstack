@@ -50,7 +50,7 @@ export default function Home() {
             </div>
             <div>
               <p className="text-3xl font-bold text-white">$75M+</p>
-              <p className="text-sm text-slate-400">Raised by CHL portfolio</p>
+              <p className="text-sm text-slate-400">Raised by CHL community</p>
             </div>
           </div>
           <p className="text-center text-base font-medium text-slate-300">

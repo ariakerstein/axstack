@@ -41,6 +41,7 @@ export default function AuditPage() {
   const [error, setError] = useState('')
   const [inputMode, setInputMode] = useState<'url' | 'paste' | 'upload' | 'saved'>('url')
   const [isUploading, setIsUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
   // Load saved decks from localStorage
   useEffect(() => {
@@ -133,13 +134,16 @@ export default function AuditPage() {
     router.push('/editor')
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const processFile = async (file: File) => {
     // Check file size client-side (4.5MB limit for Vercel)
     if (file.size > 4.5 * 1024 * 1024) {
       setError('File too large. Maximum size is 4.5MB. Try a smaller PDF or paste the content instead.')
+      return
+    }
+
+    // Check if it's a PDF
+    if (!file.type.includes('pdf') && !file.name.endsWith('.pdf')) {
+      setError('Please upload a PDF file.')
       return
     }
 
@@ -184,6 +188,34 @@ export default function AuditPage() {
       setError(message)
       setIsUploading(false)
     }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await processFile(file)
+  }
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const file = e.dataTransfer.files?.[0]
+    if (!file) return
+    await processFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
   }
 
   // Side panel state
@@ -390,29 +422,40 @@ export default function AuditPage() {
             {/* Upload PDF */}
             {inputMode === 'upload' && (
               <div className="mb-6">
-                <label className="block w-full cursor-pointer">
-                  <div className="border-2 border-dashed border-slate-600 hover:border-teal-500 rounded-xl p-12 text-center transition-colors">
-                    {isUploading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-400 mx-auto mb-4"></div>
-                        <p className="text-slate-300">Extracting text from PDF...</p>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-4xl mb-4">📄</div>
-                        <p className="text-lg text-slate-300 mb-2">Drop your PDF here or click to upload</p>
-                        <p className="text-sm text-slate-500">We&apos;ll extract the text and audit it</p>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-                </label>
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
+                    isDragging
+                      ? 'border-teal-400 bg-teal-500/10'
+                      : 'border-slate-600 hover:border-teal-500'
+                  }`}
+                  onClick={() => document.getElementById('pdf-input')?.click()}
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-400 mx-auto mb-4"></div>
+                      <p className="text-slate-300">Extracting text from PDF...</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-4xl mb-4">{isDragging ? '📥' : '📄'}</div>
+                      <p className="text-lg text-slate-300 mb-2">
+                        {isDragging ? 'Drop it here!' : 'Drop your PDF here or click to upload'}
+                      </p>
+                      <p className="text-sm text-slate-500">We&apos;ll extract the text and audit it</p>
+                    </>
+                  )}
+                </div>
+                <input
+                  id="pdf-input"
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
               </div>
             )}
 
