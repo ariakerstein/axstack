@@ -9,8 +9,10 @@ import {
   addFeedback as addFeedbackToDb,
   getFeedbackForDeck,
   type PitchDeck,
-  type PitchFeedback
+  type PitchFeedback,
+  getSessionId
 } from '@/lib/supabase'
+import { COLOR_SCHEMES, schemeToStyles, UNSPLASH_CATEGORIES, type ColorScheme } from '@/lib/themes'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -18,8 +20,22 @@ interface ChatMessage {
 }
 
 
-type Tab = 'assist' | 'edit' | 'versions' | 'feedback'
-type AssistSection = 'fixes' | 'sources'
+type Tab = 'design' | 'edit' | 'versions' | 'feedback'
+
+interface UnsplashImage {
+  id: string
+  url: string
+  thumb: string
+  alt: string
+  credit: { name: string; link: string } | null
+  downloadUrl: string | null
+}
+
+interface UploadedMedia {
+  name: string
+  url: string
+  createdAt: string
+}
 
 const LAYOUTS = [
   { id: 'centered', label: 'Center', icon: '▣' },
@@ -61,10 +77,13 @@ export default function EditorPage() {
   const [prompt, setPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [slides, setSlides] = useState<string[]>([])
-  const [activeTab, setActiveTab] = useState<Tab>('assist')
-  const [assistSection, setAssistSection] = useState<AssistSection>('fixes')
+  const [activeTab, setActiveTab] = useState<Tab>('design')
   const [newVersionName, setNewVersionName] = useState('')
-  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light')
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(COLOR_SCHEMES[0])
+  const [unsplashImages, setUnsplashImages] = useState<UnsplashImage[]>([])
+  const [isLoadingImages, setIsLoadingImages] = useState(false)
+  const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia[]>([])
+  const [isUploading, setIsUploading] = useState(false)
   const [score, setScore] = useState<DeckScore | null>(null)
   const [showScore, setShowScore] = useState(true)
   const [isRescoring, setIsRescoring] = useState(false)
@@ -412,6 +431,53 @@ export default function EditorPage() {
   const currentDeck = savedDecks.find(d => d.id === currentDeckId)
   const totalSlides = slides.length || 10
 
+  // Fetch Unsplash images
+  const fetchImages = async (query: string) => {
+    setIsLoadingImages(true)
+    try {
+      const res = await fetch(`/api/unsplash?query=${encodeURIComponent(query)}&per_page=8`)
+      const data = await res.json()
+      setUnsplashImages(data.images || [])
+    } catch (e) {
+      console.error('Failed to fetch images:', e)
+    } finally {
+      setIsLoadingImages(false)
+    }
+  }
+
+  // Upload media file
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('sessionId', getSessionId())
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setUploadedMedia(prev => [{ name: file.name, url: data.url, createdAt: new Date().toISOString() }, ...prev])
+      }
+    } catch (e) {
+      console.error('Upload failed:', e)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  // Insert image into current slide
+  const insertImage = (imageUrl: string) => {
+    setPrompt(`Add this background image to slide ${currentSlide + 1}: ${imageUrl}`)
+    setActiveTab('edit')
+  }
+
   if (!html) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8">
@@ -424,27 +490,7 @@ export default function EditorPage() {
     )
   }
 
-  const themeStyles = previewTheme === 'light' ? `
-    body { margin: 0; background: #f8fafc !important; }
-    section { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc !important; }
-    /* Force light theme colors for ADA compliance */
-    h1, h2, h3, h4, h5, h6 { color: #0f172a !important; }
-    p, li, span, div { color: #334155 !important; }
-    .text-white, .text-slate-100, .text-slate-200, .text-slate-300 { color: #334155 !important; }
-    .text-teal-400, .text-teal-300 { color: #0d9488 !important; }
-    .bg-slate-900, .bg-slate-800, .bg-gray-900, .bg-gray-800 { background: #f8fafc !important; }
-    table { border-color: #e2e8f0 !important; }
-    th, td { border-color: #e2e8f0 !important; color: #334155 !important; }
-  ` : `
-    body { margin: 0; background: #0f172a !important; }
-    section { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0f172a !important; }
-    /* Force dark theme colors for ADA compliance */
-    h1, h2, h3, h4, h5, h6 { color: #f8fafc !important; }
-    p, li, span, div { color: #e2e8f0 !important; }
-    .text-gray-700, .text-gray-600, .text-slate-700, .text-slate-600 { color: #e2e8f0 !important; }
-    .text-gray-900, .text-slate-900 { color: #f8fafc !important; }
-    .bg-white, .bg-gray-50, .bg-slate-50 { background: #0f172a !important; }
-  `
+  const themeStyles = schemeToStyles(colorScheme)
 
   const slideHtml = slides[currentSlide] ? `
     <!DOCTYPE html>
@@ -492,7 +538,7 @@ export default function EditorPage() {
         <div className="bg-slate-800 border-b border-slate-700 py-2 px-6">
           <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
             <button
-              onClick={() => { setActiveTab('assist'); setAssistSection('fixes'); }}
+              onClick={() => setActiveTab('edit')}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
               <span className={`text-2xl font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-orange-400'} ${showCelebration ? 'animate-bounce' : ''}`}>
@@ -522,7 +568,7 @@ export default function EditorPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Left: Slide Preview */}
-        <div className={`flex-1 md:w-3/5 flex flex-col ${previewTheme === 'light' ? 'bg-slate-100' : 'bg-slate-900'}`}>
+        <div className="flex-1 md:w-3/5 flex flex-col" style={{ backgroundColor: colorScheme.colors.bg }}>
           <div className="flex-1 relative">
             <iframe srcDoc={slideHtml} className="w-full h-full border-0" title="Slide Preview" />
           </div>
@@ -610,7 +656,7 @@ export default function EditorPage() {
         <div className="md:w-2/5 bg-slate-800 border-l border-slate-700 flex flex-col">
           {/* Tabs */}
           <div className="flex border-b border-slate-700">
-            {(['assist', 'edit', 'versions', 'feedback'] as Tab[]).map(tab => (
+            {(['design', 'edit', 'versions', 'feedback'] as Tab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -620,10 +666,10 @@ export default function EditorPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {tab === 'assist' ? 'AI Assist' : tab}
-                {tab === 'assist' && (sourceIssues.length > 0 || (score?.gaps?.length ?? 0) > 0) && (
+                {tab}
+                {tab === 'edit' && (score?.gaps?.length ?? 0) > 0 && (
                   <span className="ml-1 bg-orange-500 text-white text-xs px-1.5 rounded-full">
-                    {sourceIssues.length + (score?.gaps?.length ?? 0)}
+                    {score?.gaps?.length}
                   </span>
                 )}
               </button>
@@ -636,36 +682,11 @@ export default function EditorPage() {
             {activeTab === 'edit' && (
               <div className="flex flex-col h-full">
                 <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                  {/* Slide Layout + Theme */}
+                  {/* Slide Layout */}
                   <div className="pb-3 border-b border-slate-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                        Slide {currentSlide + 1} Layout
-                      </h3>
-                      {/* Theme Toggle */}
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => setPreviewTheme('light')}
-                          className={`px-2 py-1 rounded text-xs transition-colors ${
-                            previewTheme === 'light'
-                              ? 'bg-white text-slate-900'
-                              : 'bg-slate-700 text-slate-400 hover:text-white'
-                          }`}
-                        >
-                          ☀️
-                        </button>
-                        <button
-                          onClick={() => setPreviewTheme('dark')}
-                          className={`px-2 py-1 rounded text-xs transition-colors ${
-                            previewTheme === 'dark'
-                              ? 'bg-slate-900 text-white border border-slate-600'
-                              : 'bg-slate-700 text-slate-400 hover:text-white'
-                          }`}
-                        >
-                          🌙
-                        </button>
-                      </div>
-                    </div>
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                      Slide {currentSlide + 1} Layout
+                    </h3>
                     <div className="flex gap-1.5">
                       {LAYOUTS.map(layout => (
                         <button
@@ -709,7 +730,7 @@ export default function EditorPage() {
                         ))}
                         {(score.gaps?.length ?? 0) > 3 && (
                           <button
-                            onClick={() => { setActiveTab('assist'); setAssistSection('fixes'); }}
+                            onClick={() => setActiveTab('edit')}
                             className="text-xs text-teal-400 hover:underline"
                           >
                             +{(score.gaps?.length ?? 0) - 3} more →
@@ -773,141 +794,179 @@ export default function EditorPage() {
               </div>
             )}
 
-            {/* AI Assist Tab - Full Fixes + Sources */}
-            {activeTab === 'assist' && (
-              <div className="flex flex-col h-full">
-                {/* Section Tabs */}
-                <div className="flex border-b border-slate-700 bg-slate-800/50">
-                  {(['fixes', 'sources'] as AssistSection[]).map(section => (
-                    <button
-                      key={section}
-                      onClick={() => setAssistSection(section)}
-                      className={`flex-1 px-3 py-2 text-xs font-medium capitalize ${
-                        assistSection === section
-                          ? 'text-teal-400 bg-slate-700/50'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {section}
-                      {section === 'fixes' && (score?.gaps?.length ?? 0) > 0 && (
-                        <span className="ml-1 bg-orange-500/80 text-white text-[10px] px-1 rounded-full">
-                          {score?.gaps?.length}
-                        </span>
-                      )}
-                      {section === 'sources' && sourceIssues.length > 0 && (
-                        <span className="ml-1 bg-orange-500/80 text-white text-[10px] px-1 rounded-full">
-                          {sourceIssues.length}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Section Content */}
-                <div className="flex-1 overflow-y-auto p-4">
-                  {/* Fixes Section */}
-                  {assistSection === 'fixes' && (
-                    <div>
-                      {/* Score Summary */}
-                      {score && (
-                        <div className="mb-4 p-3 bg-slate-700/50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium">Score</span>
-                            <span className={`text-2xl font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-orange-400'}`}>
-                              {score.total}/30
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-600 rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full ${score.total >= 20 ? 'bg-green-400' : score.total >= 15 ? 'bg-yellow-400' : 'bg-orange-400'}`}
-                              style={{ width: `${(score.total / 30) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <h3 className="text-sm font-semibold text-slate-300 mb-3">Top Fixes</h3>
-                      {(!score?.gaps || score.gaps.length === 0) ? (
-                        <div className="text-center py-6 text-slate-500 text-sm">
-                          <p className="mb-2">No fixes identified yet.</p>
-                          <button
-                            onClick={handleRescore}
-                            disabled={isRescoring}
-                            className="text-teal-400 hover:underline"
-                          >
-                            {isRescoring ? 'Scoring...' : 'Run audit →'}
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {score.gaps.map((gap, i) => (
-                            <button
-                              key={i}
-                              onClick={() => {
-                                setPrompt(gap)
-                                setActiveTab('edit')
-                              }}
-                              className="w-full text-left p-3 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors group"
-                            >
-                              <span className="text-orange-400 mr-2">•</span>
-                              {gap}
-                              <span className="text-teal-400 opacity-0 group-hover:opacity-100 ml-2 text-xs">
-                                Fix →
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Sources Section */}
-                  {assistSection === 'sources' && (
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-semibold text-slate-300">Source Checker</h3>
+            {/* Design Tab - Colors, Images, Media */}
+            {activeTab === 'design' && (
+              <div className="flex flex-col h-full overflow-y-auto">
+                <div className="p-4 space-y-6">
+                  {/* Color Schemes */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                      Color Scheme
+                    </h3>
+                    <div className="grid grid-cols-4 gap-2">
+                      {COLOR_SCHEMES.map(scheme => (
                         <button
-                          onClick={handleCheckSources}
-                          disabled={isCheckingSources}
-                          className="text-xs bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 px-3 py-1.5 rounded-lg"
+                          key={scheme.id}
+                          onClick={() => setColorScheme(scheme)}
+                          className={`relative rounded-lg overflow-hidden h-12 transition-all ${
+                            colorScheme.id === scheme.id
+                              ? 'ring-2 ring-teal-400 ring-offset-2 ring-offset-slate-800'
+                              : 'hover:scale-105'
+                          }`}
+                          title={scheme.name}
                         >
-                          {isCheckingSources ? 'Checking...' : 'Check'}
+                          <div className={`w-full h-full bg-gradient-to-br ${scheme.preview}`} />
+                          <span className="absolute bottom-0.5 left-0 right-0 text-[9px] text-center text-white drop-shadow-lg">
+                            {scheme.name}
+                          </span>
                         </button>
-                      </div>
-
-                      {sourceIssues.length === 0 && !isCheckingSources && (
-                        <div className="text-center py-6 text-slate-500 text-sm">
-                          <p>Scan your deck for claims that need citations.</p>
-                        </div>
-                      )}
-
-                      {sourceIssues.length > 0 && (
-                        <div className="space-y-3">
-                          {sourceIssues.map((issue, i) => (
-                            <div key={i} className="bg-slate-700/50 rounded-lg p-3">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded">
-                                  Slide {issue.slide}
-                                </span>
-                              </div>
-                              <p className="text-sm text-slate-300 mb-2">&quot;{issue.claim}&quot;</p>
-                              <p className="text-xs text-teal-400 mb-2">💡 {issue.suggestion}</p>
-                              <button
-                                onClick={() => {
-                                  setPrompt(`Add a citation for: "${issue.claim}" - use source: ${issue.suggestion}`)
-                                  setActiveTab('edit')
-                                }}
-                                className="text-xs text-slate-400 hover:text-white"
-                              >
-                                Fix this →
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      ))}
                     </div>
-                  )}
+                  </div>
 
+                  {/* Unsplash Images */}
+                  <div className="border-t border-slate-700 pt-4">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                      Stock Images
+                    </h3>
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {UNSPLASH_CATEGORIES.map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => fetchImages(cat.query)}
+                          className="text-xs px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors"
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {isLoadingImages && (
+                      <div className="text-center py-4 text-slate-500 text-sm">Loading images...</div>
+                    )}
+
+                    {unsplashImages.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {unsplashImages.map(img => (
+                          <button
+                            key={img.id}
+                            onClick={() => insertImage(img.url)}
+                            className="relative group rounded-lg overflow-hidden aspect-video"
+                          >
+                            <img
+                              src={img.thumb}
+                              alt={img.alt}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-xs text-white font-medium">Insert</span>
+                            </div>
+                            {img.credit && (
+                              <span className="absolute bottom-0.5 right-1 text-[8px] text-white/70">
+                                {img.credit.name}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {!isLoadingImages && unsplashImages.length === 0 && (
+                      <div className="text-center py-4 text-slate-500 text-xs">
+                        Click a category to browse images
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Media */}
+                  <div className="border-t border-slate-700 pt-4">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                      Upload Media
+                    </h3>
+                    <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-teal-400 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleMediaUpload}
+                        className="hidden"
+                        disabled={isUploading}
+                      />
+                      {isUploading ? (
+                        <span className="text-sm text-slate-400">Uploading...</span>
+                      ) : (
+                        <>
+                          <span className="text-lg">📁</span>
+                          <span className="text-sm text-slate-400">Drop image or click</span>
+                        </>
+                      )}
+                    </label>
+
+                    {uploadedMedia.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        {uploadedMedia.map((media, i) => (
+                          <button
+                            key={i}
+                            onClick={() => insertImage(media.url)}
+                            className="relative group rounded-lg overflow-hidden aspect-square"
+                          >
+                            <img
+                              src={media.url}
+                              alt={media.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-xs text-white">Use</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="border-t border-slate-700 pt-4">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                      Style Actions
+                    </h3>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => {
+                          setPrompt('Add subtle gradient backgrounds to all slides for visual depth')
+                          setActiveTab('edit')
+                        }}
+                        className="w-full text-left px-3 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                      >
+                        ✨ Add gradient backgrounds
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPrompt('Wrap key content in cards with subtle shadows and borders')
+                          setActiveTab('edit')
+                        }}
+                        className="w-full text-left px-3 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                      >
+                        🎴 Add card styling
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPrompt('Convert metrics to large stat cards with big numbers')
+                          setActiveTab('edit')
+                        }}
+                        className="w-full text-left px-3 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                      >
+                        📊 Create stat cards
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPrompt('Add relevant emoji icons to slide headlines (1-2 per slide max)')
+                          setActiveTab('edit')
+                        }}
+                        className="w-full text-left px-3 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                      >
+                        🎯 Add icons to headlines
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
