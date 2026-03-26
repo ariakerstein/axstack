@@ -30,6 +30,12 @@ interface DeckVersion {
 
 type Tab = 'edit' | 'versions' | 'feedback'
 
+interface DeckScore {
+  total: number
+  breakdown: Record<string, number>
+  gaps: string[]
+}
+
 export default function EditorPage() {
   const [html, setHtml] = useState<string>('')
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -42,6 +48,9 @@ export default function EditorPage() {
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(null)
   const [newVersionName, setNewVersionName] = useState('')
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light')
+  const [score, setScore] = useState<DeckScore | null>(null)
+  const [showScore, setShowScore] = useState(true)
+  const [isRescoring, setIsRescoring] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // Feedback form state
@@ -55,18 +64,49 @@ export default function EditorPage() {
     meetingStage: 'warm_intro' as const,
   })
 
-  // Load initial deck and versions from localStorage
+  // Load initial deck, score, and versions from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('generatedDeck')
     if (stored) {
       const data = JSON.parse(stored)
       setHtml(data.html)
+      if (data.score !== undefined) {
+        setScore({
+          total: data.score,
+          breakdown: data.scoreBreakdown || {},
+          gaps: data.gaps || []
+        })
+      }
     }
     const storedVersions = localStorage.getItem('deckVersions')
     if (storedVersions) {
       setVersions(JSON.parse(storedVersions))
     }
   }, [])
+
+  // Re-score the current deck
+  const handleRescore = async () => {
+    setIsRescoring(true)
+    try {
+      const response = await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setScore({
+          total: data.score,
+          breakdown: data.breakdown || {},
+          gaps: data.gaps || []
+        })
+      }
+    } catch (e) {
+      console.error('Failed to rescore:', e)
+    } finally {
+      setIsRescoring(false)
+    }
+  }
 
   // Save versions to localStorage
   useEffect(() => {
@@ -294,6 +334,39 @@ export default function EditorPage() {
           </Link>
         </div>
       </header>
+
+      {/* Score Banner */}
+      {score && (
+        <div className={`bg-slate-700 border-b border-slate-600 transition-all ${showScore ? 'py-3 px-6' : 'py-1 px-6'}`}>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setShowScore(!showScore)}
+              className="flex items-center gap-3 text-sm"
+            >
+              <span className={`font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
+                Score: {score.total}/27
+              </span>
+              <span className="text-slate-400">{showScore ? '▼' : '▶'}</span>
+            </button>
+            <button
+              onClick={handleRescore}
+              disabled={isRescoring}
+              className="text-xs text-teal-400 hover:underline disabled:text-slate-500"
+            >
+              {isRescoring ? 'Scoring...' : 'Re-score'}
+            </button>
+          </div>
+          {showScore && score.gaps.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {score.gaps.map((gap, i) => (
+                <span key={i} className="text-xs bg-slate-800 text-slate-300 px-2 py-1 rounded">
+                  {gap}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:flex-row">
