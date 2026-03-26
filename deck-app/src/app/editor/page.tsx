@@ -36,6 +36,11 @@ interface DeckScore {
   gaps: string[]
 }
 
+interface ScoreHistory {
+  score: number
+  timestamp: number
+}
+
 export default function EditorPage() {
   const [html, setHtml] = useState<string>('')
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -51,6 +56,9 @@ export default function EditorPage() {
   const [score, setScore] = useState<DeckScore | null>(null)
   const [showScore, setShowScore] = useState(true)
   const [isRescoring, setIsRescoring] = useState(false)
+  const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([])
+  const [scoreDelta, setScoreDelta] = useState<number | null>(null)
+  const [showCelebration, setShowCelebration] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // Feedback form state
@@ -71,11 +79,21 @@ export default function EditorPage() {
       const data = JSON.parse(stored)
       setHtml(data.html)
       if (data.score !== undefined) {
-        setScore({
+        const initialScore = {
           total: data.score,
           breakdown: data.scoreBreakdown || {},
           gaps: data.gaps || []
-        })
+        }
+        setScore(initialScore)
+        // Initialize score history with first score
+        const storedHistory = localStorage.getItem('scoreHistory')
+        if (storedHistory) {
+          setScoreHistory(JSON.parse(storedHistory))
+        } else {
+          const initial: ScoreHistory[] = [{ score: data.score, timestamp: Date.now() }]
+          setScoreHistory(initial)
+          localStorage.setItem('scoreHistory', JSON.stringify(initial))
+        }
       }
     }
     const storedVersions = localStorage.getItem('deckVersions')
@@ -87,6 +105,9 @@ export default function EditorPage() {
   // Re-score the current deck
   const handleRescore = async () => {
     setIsRescoring(true)
+    setScoreDelta(null)
+    const previousScore = score?.total || 0
+
     try {
       const response = await fetch('/api/audit', {
         method: 'POST',
@@ -95,11 +116,28 @@ export default function EditorPage() {
       })
       if (response.ok) {
         const data = await response.json()
+        const newScore = data.score
+        const delta = newScore - previousScore
+
         setScore({
-          total: data.score,
+          total: newScore,
           breakdown: data.breakdown || {},
           gaps: data.gaps || []
         })
+
+        // Track delta
+        setScoreDelta(delta)
+
+        // Add to history
+        const newHistory = [...scoreHistory, { score: newScore, timestamp: Date.now() }]
+        setScoreHistory(newHistory)
+        localStorage.setItem('scoreHistory', JSON.stringify(newHistory))
+
+        // Celebrate improvements!
+        if (delta > 0) {
+          setShowCelebration(true)
+          setTimeout(() => setShowCelebration(false), 2000)
+        }
       }
     } catch (e) {
       console.error('Failed to rescore:', e)
@@ -335,36 +373,68 @@ export default function EditorPage() {
         </div>
       </header>
 
-      {/* Score Banner */}
+      {/* Score Banner - Prominent & Central */}
       {score && (
-        <div className={`bg-slate-700 border-b border-slate-600 transition-all ${showScore ? 'py-3 px-6' : 'py-1 px-6'}`}>
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setShowScore(!showScore)}
-              className="flex items-center gap-3 text-sm"
-            >
-              <span className={`font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
-                Score: {score.total}/27
-              </span>
-              <span className="text-slate-400">{showScore ? '▼' : '▶'}</span>
-            </button>
-            <button
-              onClick={handleRescore}
-              disabled={isRescoring}
-              className="text-xs text-teal-400 hover:underline disabled:text-slate-500"
-            >
-              {isRescoring ? 'Scoring...' : 'Re-score'}
-            </button>
-          </div>
-          {showScore && score.gaps.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {score.gaps.map((gap, i) => (
-                <span key={i} className="text-xs bg-slate-800 text-slate-300 px-2 py-1 rounded">
-                  {gap}
-                </span>
-              ))}
+        <div className={`bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 border-b border-slate-600 transition-all ${showScore ? 'py-4 px-6' : 'py-2 px-6'}`}>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-center gap-6">
+              {/* Main Score */}
+              <button
+                onClick={() => setShowScore(!showScore)}
+                className="flex items-center gap-4"
+              >
+                <div className={`text-4xl font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-orange-400'} ${showCelebration ? 'animate-bounce' : ''}`}>
+                  {score.total}
+                  <span className="text-lg text-slate-500">/27</span>
+                </div>
+
+                {/* Delta Badge */}
+                {scoreDelta !== null && scoreDelta !== 0 && (
+                  <span className={`text-sm font-semibold px-2 py-1 rounded ${scoreDelta > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    {scoreDelta > 0 ? '↑' : '↓'} {Math.abs(scoreDelta)}
+                  </span>
+                )}
+
+                {/* Celebration */}
+                {showCelebration && (
+                  <span className="text-2xl animate-pulse">🎉</span>
+                )}
+              </button>
+
+              {/* Mini Sparkline */}
+              {scoreHistory.length > 1 && (
+                <div className="flex items-end gap-0.5 h-8">
+                  {scoreHistory.slice(-8).map((h, i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 bg-teal-500 rounded-t transition-all"
+                      style={{ height: `${(h.score / 27) * 100}%` }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Re-score Button */}
+              <button
+                onClick={handleRescore}
+                disabled={isRescoring}
+                className="text-sm bg-slate-600 hover:bg-slate-500 disabled:bg-slate-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                {isRescoring ? '...' : 'Re-score'}
+              </button>
             </div>
-          )}
+
+            {/* Gaps */}
+            {showScore && score.gaps.length > 0 && (
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {score.gaps.map((gap, i) => (
+                  <span key={i} className="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full">
+                    {gap}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
