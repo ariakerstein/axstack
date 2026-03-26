@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { upload } from '@vercel/blob/client'
 
 const AUDIT_QUOTES = [
   { text: "Your deck is being judged like you judge Tinder profiles. Harsh but fair.", author: "The Algorithm" },
@@ -156,7 +157,7 @@ export default function AuditPage() {
   }
 
   const processFile = async (file: File) => {
-    // Check max size (20MB via blob storage)
+    // Check max size (20MB)
     const MAX_SIZE = 20 * 1024 * 1024
     if (file.size > MAX_SIZE) {
       setError('File too large. Maximum size is 20MB.')
@@ -175,29 +176,19 @@ export default function AuditPage() {
     try {
       let parseResponse: Response
 
-      // For large files (> 4MB), upload to blob storage first
+      // For large files (> 4MB), use client-side blob upload (bypasses serverless limits)
       if (file.size > 4 * 1024 * 1024) {
-        // Step 1: Upload to Vercel Blob
-        const uploadFormData = new FormData()
-        uploadFormData.append('file', file)
-
-        const uploadResponse = await fetch('/api/upload-pdf', {
-          method: 'POST',
-          body: uploadFormData,
+        // Step 1: Upload directly to Vercel Blob from browser
+        const blob = await upload(file.name, file, {
+          access: 'public',
+          handleUploadUrl: '/api/upload-pdf',
         })
-
-        if (!uploadResponse.ok) {
-          const data = await uploadResponse.json()
-          throw new Error(data.error || 'Failed to upload PDF')
-        }
-
-        const { url } = await uploadResponse.json()
 
         // Step 2: Parse from blob URL
         parseResponse = await fetch('/api/parse-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url: blob.url }),
         })
       } else {
         // For small files, direct upload (faster)

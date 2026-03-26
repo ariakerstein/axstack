@@ -1,37 +1,32 @@
-import { put } from '@vercel/blob'
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
+// This endpoint handles client-side uploads (bypasses serverless size limits)
 export async function POST(request: NextRequest) {
+  const body = (await request.json()) as HandleUploadBody
+
   try {
-    const formData = await request.formData()
-    const file = formData.get('file') as File
-
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      )
-    }
-
-    if (!file.type.includes('pdf') && !file.name.endsWith('.pdf')) {
-      return NextResponse.json(
-        { error: 'File must be a PDF' },
-        { status: 400 }
-      )
-    }
-
-    // Upload to Vercel Blob (supports up to 500MB)
-    const blob = await put(`decks/${Date.now()}-${file.name}`, file, {
-      access: 'public',
-      addRandomSuffix: true,
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async (pathname) => {
+        // Validate it's a PDF
+        if (!pathname.endsWith('.pdf')) {
+          throw new Error('Only PDF files are allowed')
+        }
+        return {
+          allowedContentTypes: ['application/pdf'],
+          maximumSizeInBytes: 20 * 1024 * 1024, // 20MB
+        }
+      },
+      onUploadCompleted: async ({ blob }) => {
+        console.log('PDF uploaded:', blob.url)
+      },
     })
 
-    return NextResponse.json({
-      url: blob.url,
-      size: file.size,
-    })
+    return NextResponse.json(jsonResponse)
   } catch (error) {
     console.error('Upload error:', error)
     const message = error instanceof Error ? error.message : 'Unknown error'
