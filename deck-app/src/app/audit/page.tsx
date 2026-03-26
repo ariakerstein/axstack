@@ -39,7 +39,8 @@ export default function AuditPage() {
     detailedNotes: string
   } | null>(null)
   const [error, setError] = useState('')
-  const [inputMode, setInputMode] = useState<'url' | 'paste' | 'saved'>('url')
+  const [inputMode, setInputMode] = useState<'url' | 'paste' | 'upload' | 'saved'>('url')
+  const [isUploading, setIsUploading] = useState(false)
 
   // Load saved decks from localStorage
   useEffect(() => {
@@ -130,6 +131,39 @@ export default function AuditPage() {
       gaps: result?.topFixes,
     }))
     router.push('/editor')
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/parse-pdf', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to parse PDF')
+      }
+
+      const data = await response.json()
+      setDeckContent(data.text)
+      setAuditedContent(data.text)
+      // Auto-trigger audit
+      handleAuditWithContent(data.text)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to upload PDF'
+      setError(message)
+      setIsUploading(false)
+    }
   }
 
   // Side panel state
@@ -273,7 +307,17 @@ export default function AuditPage() {
                     : 'bg-slate-800 text-slate-400 hover:text-white'
                 }`}
               >
-                Paste Content
+                Paste
+              </button>
+              <button
+                onClick={() => setInputMode('upload')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  inputMode === 'upload'
+                    ? 'bg-teal-500 text-white'
+                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                Upload PDF
               </button>
               <button
                 onClick={() => setInputMode('saved')}
@@ -316,6 +360,35 @@ export default function AuditPage() {
                   rows={10}
                   className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-4 text-lg focus:outline-none focus:border-teal-400 resize-none font-mono text-sm"
                 />
+              </div>
+            )}
+
+            {/* Upload PDF */}
+            {inputMode === 'upload' && (
+              <div className="mb-6">
+                <label className="block w-full cursor-pointer">
+                  <div className="border-2 border-dashed border-slate-600 hover:border-teal-500 rounded-xl p-12 text-center transition-colors">
+                    {isUploading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-400 mx-auto mb-4"></div>
+                        <p className="text-slate-300">Extracting text from PDF...</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-4xl mb-4">📄</div>
+                        <p className="text-lg text-slate-300 mb-2">Drop your PDF here or click to upload</p>
+                        <p className="text-sm text-slate-500">We&apos;ll extract the text and audit it</p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                </label>
               </div>
             )}
 

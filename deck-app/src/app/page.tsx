@@ -98,6 +98,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Powered by */}
+      <section className="py-8 px-8 border-b border-slate-800">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-sm text-slate-500 mb-3">POWERED BY</p>
+          <div className="flex items-center justify-center gap-6 text-slate-400">
+            <span className="flex items-center gap-2">
+              <span className="text-teal-400 font-mono text-sm">/fundraise</span>
+              <span className="text-slate-600">axestack skill</span>
+            </span>
+            <span className="text-slate-700">•</span>
+            <span>Claude Code</span>
+            <span className="text-slate-700">•</span>
+            <span>Anthropic</span>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="py-16 px-8 bg-slate-800/50">
         <div className="max-w-4xl mx-auto">
@@ -106,17 +123,17 @@ export default function Home() {
             <div className="text-center">
               <div className="text-4xl mb-4">1</div>
               <h3 className="text-xl font-semibold mb-2">Answer 6 questions</h3>
-              <p className="text-slate-400">Guided discovery with real-time feedback. We'll push back if your answers are vague.</p>
+              <p className="text-slate-400">Our proprietary discovery flow extracts the core of your pitch. No fluff allowed.</p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-4">2</div>
               <h3 className="text-xl font-semibold mb-2">AI generates deck</h3>
-              <p className="text-slate-400">Claude creates a 10-slide deck following Kawasaki 10/20/30 and investor best practices.</p>
+              <p className="text-slate-400">Purpose-built prompts trained on 100s of funded decks. Kawasaki 10/20/30 enforced.</p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-4">3</div>
-              <h3 className="text-xl font-semibold mb-2">Download & pitch</h3>
-              <p className="text-slate-400">Get your HTML deck with a scorecard. Edit anytime, share with investors.</p>
+              <h3 className="text-xl font-semibold mb-2">Iterate & score</h3>
+              <p className="text-slate-400">Chat-based editing with real-time scoring. Know exactly where you stand.</p>
             </div>
           </div>
         </div>

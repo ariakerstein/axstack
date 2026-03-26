@@ -484,16 +484,31 @@ export default function EditorPage() {
                 )}
               </button>
 
-              {/* Mini Sparkline */}
+              {/* Score Progress Bar */}
               {scoreHistory.length > 1 && (
-                <div className="flex items-end gap-0.5 h-8">
-                  {scoreHistory.slice(-8).map((h, i) => (
-                    <div
-                      key={i}
-                      className="w-1.5 bg-teal-500 rounded-t transition-all"
-                      style={{ height: `${(h.score / 27) * 100}%` }}
-                    />
-                  ))}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-slate-700/50 px-3 py-1.5 rounded-full">
+                    <span className="text-xs text-slate-400">Edits:</span>
+                    <div className="flex gap-0.5">
+                      {scoreHistory.slice(-6).map((h, i, arr) => {
+                        const prev = i > 0 ? arr[i - 1].score : h.score
+                        const isUp = h.score > prev
+                        const isDown = h.score < prev
+                        return (
+                          <div
+                            key={i}
+                            className={`w-2 h-2 rounded-full ${
+                              isUp ? 'bg-green-400' : isDown ? 'bg-red-400' : 'bg-slate-500'
+                            }`}
+                            title={`${h.score}/27`}
+                          />
+                        )
+                      })}
+                    </div>
+                    {Math.max(...scoreHistory.map(h => h.score)) === score.total && scoreHistory.length > 1 && (
+                      <span className="text-xs text-yellow-400 ml-1">⭐ Best!</span>
+                    )}
+                  </div>
                 </div>
               )}
 
