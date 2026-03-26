@@ -41,6 +41,7 @@ export default function EditorPage() {
   const [versions, setVersions] = useState<DeckVersion[]>([])
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(null)
   const [newVersionName, setNewVersionName] = useState('')
+  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light')
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // Feedback form state
@@ -208,15 +209,34 @@ export default function EditorPage() {
     )
   }
 
+  const themeStyles = previewTheme === 'light' ? `
+    body { margin: 0; background: #f8fafc !important; }
+    section { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc !important; }
+    /* Force light theme colors for ADA compliance */
+    h1, h2, h3, h4, h5, h6 { color: #0f172a !important; }
+    p, li, span, div { color: #334155 !important; }
+    .text-white, .text-slate-100, .text-slate-200, .text-slate-300 { color: #334155 !important; }
+    .text-teal-400, .text-teal-300 { color: #0d9488 !important; }
+    .bg-slate-900, .bg-slate-800, .bg-gray-900, .bg-gray-800 { background: #f8fafc !important; }
+    table { border-color: #e2e8f0 !important; }
+    th, td { border-color: #e2e8f0 !important; color: #334155 !important; }
+  ` : `
+    body { margin: 0; background: #0f172a !important; }
+    section { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0f172a !important; }
+    /* Force dark theme colors for ADA compliance */
+    h1, h2, h3, h4, h5, h6 { color: #f8fafc !important; }
+    p, li, span, div { color: #e2e8f0 !important; }
+    .text-gray-700, .text-gray-600, .text-slate-700, .text-slate-600 { color: #e2e8f0 !important; }
+    .text-gray-900, .text-slate-900 { color: #f8fafc !important; }
+    .bg-white, .bg-gray-50, .bg-slate-50 { background: #0f172a !important; }
+  `
+
   const slideHtml = slides[currentSlide] ? `
     <!DOCTYPE html>
     <html>
     <head>
       <script src="https://cdn.tailwindcss.com"></script>
-      <style>
-        body { margin: 0; background: #0f172a; }
-        section { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-      </style>
+      <style>${themeStyles}</style>
     </head>
     <body>${slides[currentSlide]}</body>
     </html>
@@ -235,6 +255,13 @@ export default function EditorPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setPreviewTheme(previewTheme === 'light' ? 'dark' : 'light')}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-slate-600 hover:border-slate-500"
+          >
+            {previewTheme === 'light' ? '☀️' : '🌙'}
+            <span className="text-slate-400">{previewTheme}</span>
+          </button>
+          <button
             onClick={handleDownload}
             className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
           >
@@ -249,7 +276,7 @@ export default function EditorPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Left: Slide Preview */}
-        <div className="flex-1 md:w-3/5 flex flex-col bg-slate-900">
+        <div className={`flex-1 md:w-3/5 flex flex-col ${previewTheme === 'light' ? 'bg-slate-100' : 'bg-slate-900'}`}>
           <div className="flex-1 relative">
             <iframe srcDoc={slideHtml} className="w-full h-full border-0" title="Slide Preview" />
           </div>

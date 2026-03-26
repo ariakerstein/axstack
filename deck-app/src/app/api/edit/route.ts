@@ -7,7 +7,14 @@ Rules:
 - Apply the edit instruction to the relevant slide(s)
 - Keep all other slides unchanged unless the edit affects them
 - Maintain the same styling, structure, and Tailwind classes
-- Do not add explanations or markdown - just the HTML`
+- Do not add explanations or markdown - just the HTML
+
+CRITICAL DESIGN RULES (always enforce):
+- Text must have 4.5:1 contrast ratio minimum (WCAG AA)
+- On light backgrounds: use text-gray-900 for headlines, text-gray-700 for body
+- On dark backgrounds: use text-white for headlines, text-gray-200 for body
+- NEVER use text-gray-400/500 on any background - too low contrast
+- Accent colors: teal-600 on light, teal-400 on dark`
 
 export async function POST(request: NextRequest) {
   try {

@@ -21,7 +21,17 @@ Use this structure:
 9. Team - Why YOU win (credentials)
 10. Ask - $ amount + use of funds + milestone
 
-Style: Dark theme (bg-slate-900), white text, teal-400 accents. Each slide is a full-screen section with scroll-snap.`
+CRITICAL DESIGN RULES (ADA compliance required):
+- Light theme: bg-white or bg-gray-50 background, text-gray-900 for body text
+- Headlines: text-gray-900 (dark) with text-5xl or larger
+- Body text: text-gray-700 minimum, NEVER lighter than text-gray-600
+- Accent color: teal-600 for headlines/CTAs (not teal-400 on light backgrounds)
+- Contrast ratio must be 4.5:1 minimum (WCAG AA)
+- NEVER use gray text lighter than gray-600 on white backgrounds
+- Each slide is a full-screen section with scroll-snap
+- Use shadow-sm or subtle borders to separate slides
+
+Include Tailwind CDN in the HTML head.`
 
 export async function POST(request: NextRequest) {
   try {
