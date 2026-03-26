@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Deck Generator - Create Investor-Ready Pitch Decks',
-  description: 'Generate a 10-slide pitch deck in 5 minutes. Answer 6 questions, get a professional deck.',
+  title: 'Prompt Deck — Generate & Edit Pitch Decks with AI',
+  description: 'Answer 6 questions, get a 10-slide deck. Then iterate with natural language prompts. Fast.',
 }
 
 export default function RootLayout({

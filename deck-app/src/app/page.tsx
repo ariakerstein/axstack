@@ -10,12 +10,14 @@ export default function Home() {
             Used by 500+ founders
           </p>
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Generate an investor-ready pitch deck
-            <span className="text-teal-400"> in 5 minutes</span>
+            Prompt Deck
           </h1>
+          <p className="text-2xl text-slate-300 mb-4">
+            Generate. Edit. Iterate.<span className="text-teal-400"> Fast.</span>
+          </p>
           <p className="text-xl text-slate-400 mb-8">
-            Answer 6 questions. Get a 10-slide deck that follows the same framework
-            used by YC, a16z, and Sequoia-backed founders.
+            Answer 6 questions. Get a 10-slide deck. Then refine it with natural language prompts
+            until it's investor-ready.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -151,7 +153,7 @@ export default function Home() {
       {/* CTA */}
       <section className="py-20 px-8 text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to build your deck?</h2>
-        <p className="text-slate-400 mb-8">Join 500+ founders who've created investor-ready decks in minutes.</p>
+        <p className="text-slate-400 mb-8">Join 500+ founders who've used Prompt Deck to nail their pitch.</p>
         <Link
           href="/create"
           className="inline-block bg-teal-500 hover:bg-teal-600 text-white text-xl font-semibold px-8 py-4 rounded-lg transition-colors"
@@ -186,7 +188,7 @@ export default function Home() {
       <footer className="border-t border-slate-800 py-8 px-8">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm">
-            © 2026 Deck Generator. Part of{' '}
+            © 2026 Prompt Deck. Part of{' '}
             <a href="https://github.com/ariakerstein/axestack" className="text-teal-400 hover:underline">
               axestack
             </a>

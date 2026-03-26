@@ -184,7 +184,7 @@ export default function Wizard() {
       // Store in localStorage for preview page
       localStorage.setItem('generatedDeck', JSON.stringify(data))
 
-      router.push('/preview')
+      router.push('/editor')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to generate deck'
       setError(message)
