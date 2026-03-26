@@ -45,10 +45,18 @@ interface SourceIssue {
   suggestion: string
 }
 
+interface SlideScore {
+  slide: number
+  score: number
+  status: 'green' | 'yellow' | 'red'
+  issue: string | null
+}
+
 interface DeckScore {
   total: number
   breakdown: Record<string, number>
   gaps: string[]
+  slideScores?: SlideScore[]
 }
 
 interface ScoreHistory {
@@ -146,7 +154,8 @@ export default function EditorPage() {
         setScore({
           total: newScore,
           breakdown: data.breakdown || {},
-          gaps: data.gaps || []
+          gaps: data.topFixes || data.gaps || [],
+          slideScores: data.slideScores || []
         })
 
         // Track delta
@@ -515,23 +524,63 @@ export default function EditorPage() {
                 Next ▶
               </button>
             </div>
-            {/* Slide Picker */}
+            {/* Slide Picker with Per-Slide Scoring */}
             <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-              {Array.from({ length: totalSlides }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentSlide(i)}
-                  className={`w-7 h-7 rounded text-xs font-medium transition-all ${
-                    i === currentSlide
-                      ? 'bg-teal-500 text-white ring-2 ring-teal-400 ring-offset-1 ring-offset-slate-900'
-                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
+              {Array.from({ length: totalSlides }).map((_, i) => {
+                const slideScore = score?.slideScores?.find(s => s.slide === i + 1)
+                const scoreColor = slideScore?.status === 'green'
+                  ? 'bg-green-500/20 border-green-500 text-green-400'
+                  : slideScore?.status === 'yellow'
+                    ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400'
+                    : slideScore?.status === 'red'
+                      ? 'bg-red-500/20 border-red-500 text-red-400'
+                      : 'bg-slate-700 border-slate-600 text-slate-300'
 
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentSlide(i)}
+                    title={slideScore?.issue || `Slide ${i + 1}`}
+                    className={`w-7 h-7 rounded text-xs font-medium transition-all border ${
+                      i === currentSlide
+                        ? `${scoreColor} ring-2 ring-offset-1 ring-offset-slate-900 ${
+                            slideScore?.status === 'green' ? 'ring-green-400'
+                            : slideScore?.status === 'yellow' ? 'ring-yellow-400'
+                            : slideScore?.status === 'red' ? 'ring-red-400'
+                            : 'ring-teal-400'
+                          }`
+                        : `${scoreColor} hover:opacity-80`
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                )
+              })}
+            </div>
+            {/* Current Slide Issue */}
+            {(() => {
+              const currentSlideScore = score?.slideScores?.find(s => s.slide === currentSlide + 1)
+              if (currentSlideScore?.issue) {
+                return (
+                  <div className={`mt-2 px-3 py-1.5 rounded text-xs text-center ${
+                    currentSlideScore.status === 'red' ? 'bg-red-500/10 text-red-400' :
+                    currentSlideScore.status === 'yellow' ? 'bg-yellow-500/10 text-yellow-400' :
+                    'bg-green-500/10 text-green-400'
+                  }`}>
+                    {currentSlideScore.issue}
+                  </div>
+                )
+              }
+              return null
+            })()}
+            {/* Legend */}
+            {score?.slideScores && score.slideScores.length > 0 && (
+              <div className="flex justify-center gap-3 mt-2 text-[10px] text-slate-500">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> Strong</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500"></span> Improve</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> Fix</span>
+              </div>
+            )}
           </div>
         </div>
 

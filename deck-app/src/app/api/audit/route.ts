@@ -91,6 +91,11 @@ Output your analysis as JSON with this structure:
     "kawasaki": { "score": <0-3>, "max": 3, "note": "<slides, fonts, density>" },
     "visual": { "score": <0-2>, "max": 2, "note": "<hierarchy, consistency>" }
   },
+  "slideScores": [
+    { "slide": 1, "score": <1-3>, "status": "<green|yellow|red>", "issue": "<null or one-line issue>" },
+    { "slide": 2, "score": <1-3>, "status": "<green|yellow|red>", "issue": "<null or one-line issue>" },
+    ... for all 10 slides
+  ],
   "verdict": "<Investor Ready | Almost Ready | Needs Work | Rethink>",
   "topFixes": [
     "<specific actionable fix 1>",
@@ -99,6 +104,12 @@ Output your analysis as JSON with this structure:
   ],
   "detailedNotes": "<2-3 paragraphs of specific feedback>"
 }
+
+SLIDE SCORING (per slide):
+- Score 3 (green): Slide is strong, no major issues
+- Score 2 (yellow): Slide is okay but could be improved
+- Score 1 (red): Slide has significant issues that hurt the pitch
+- Include a brief "issue" note for yellow/red slides (null for green)
 
 Be direct and specific. No generic praise. Point out exactly what's weak and how to fix it.
 Score relative to the stage context above - what matters at pre-seed is different from Series A.`
