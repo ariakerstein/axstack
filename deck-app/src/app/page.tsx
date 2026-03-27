@@ -110,16 +110,9 @@ export default function Home() {
       <section className="py-8 px-8">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-sm text-slate-400 mb-3">POWERED BY</p>
-          <div className="flex items-center justify-center gap-6 text-slate-500">
-            <span className="flex items-center gap-2">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-teal-500 font-mono text-sm font-semibold">/fundraise</span>
-              <span className="text-slate-400">axestack skill</span>
-            </span>
-            <span className="text-slate-300">•</span>
-            <span>Claude Code</span>
-            <span className="text-slate-300">•</span>
-            <span>Anthropic</span>
-          </div>
+          <p className="text-slate-500">
+            Decades of founder blood, tears, and pitch decks
+          </p>
         </div>
       </section>
 
