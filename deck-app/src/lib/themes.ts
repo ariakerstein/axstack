@@ -161,6 +161,35 @@ export function schemeToStyles(scheme: ColorScheme): string {
       justify-content: center;
       background: ${scheme.colors.bg} !important;
       color: ${scheme.colors.text} !important;
+      position: relative;
+      padding: 4rem;
+    }
+    /* Slide chrome positioning */
+    .slide-header {
+      position: absolute;
+      top: 2rem;
+      left: 2rem;
+    }
+    .slide-logo {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background: ${scheme.colors.surface};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      opacity: 0.7;
+    }
+    .slide-number {
+      position: absolute;
+      bottom: 2rem;
+      right: 2rem;
+      font-size: 0.875rem;
+      color: ${scheme.colors.muted};
     }
     h1, h2, h3, h4, h5, h6 {
       color: ${scheme.colors.text} !important;
