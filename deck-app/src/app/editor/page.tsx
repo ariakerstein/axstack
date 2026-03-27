@@ -81,6 +81,8 @@ export default function EditorPage() {
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([])
   const [scoreDelta, setScoreDelta] = useState<number | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
+  const [confettiParticles, setConfettiParticles] = useState<{id: number, left: number, delay: number, color: string}[]>([])
+  const [motivationMessage, setMotivationMessage] = useState<string | null>(null)
   const [sourceIssues, setSourceIssues] = useState<SourceIssue[]>([])
   const [isCheckingSources, setIsCheckingSources] = useState(false)
   const [isChangingLayout, setIsChangingLayout] = useState(false)
@@ -173,10 +175,36 @@ export default function EditorPage() {
         setScoreHistory(newHistory)
         localStorage.setItem('scoreHistory', JSON.stringify(newHistory))
 
-        // Celebrate improvements!
+        // Celebrate improvements with confetti and motivation!
         if (delta > 0) {
           setShowCelebration(true)
-          setTimeout(() => setShowCelebration(false), 2000)
+
+          // Generate confetti particles
+          const colors = ['#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6']
+          const particles = Array.from({ length: 30 }, (_, i) => ({
+            id: i,
+            left: Math.random() * 100,
+            delay: Math.random() * 0.5,
+            color: colors[Math.floor(Math.random() * colors.length)]
+          }))
+          setConfettiParticles(particles)
+
+          // Show motivation message based on improvement
+          const messages = delta >= 3
+            ? ['🔥 Huge improvement!', '🚀 On fire!', '💪 Crushing it!']
+            : ['📈 Nice!', '⬆️ Getting better!', '✨ Keep going!']
+          setMotivationMessage(messages[Math.floor(Math.random() * messages.length)])
+
+          setTimeout(() => {
+            setShowCelebration(false)
+            setConfettiParticles([])
+            setMotivationMessage(null)
+          }, 3000)
+        } else if (delta < 0) {
+          // Encourage on score drop
+          const encouragements = ['💡 Try a different approach', '🎯 Focus on the fixes', '📝 Iteration is key']
+          setMotivationMessage(encouragements[Math.floor(Math.random() * encouragements.length)])
+          setTimeout(() => setMotivationMessage(null), 3000)
         }
       }
     } catch (e) {
@@ -539,9 +567,33 @@ export default function EditorPage() {
         </div>
       </header>
 
-      {/* Compact Score Banner */}
+      {/* Compact Score Banner with Confetti */}
       {score && (
-        <div className="bg-slate-800 border-b border-slate-700 py-2 px-6">
+        <div className="bg-slate-800 border-b border-slate-700 py-2 px-6 relative overflow-hidden">
+          {/* Confetti Animation */}
+          {confettiParticles.map(p => (
+            <div
+              key={p.id}
+              className="absolute w-2 h-2 rounded-full animate-confetti pointer-events-none"
+              style={{
+                left: `${p.left}%`,
+                top: '-8px',
+                backgroundColor: p.color,
+                animationDelay: `${p.delay}s`,
+              }}
+            />
+          ))}
+
+          <style jsx>{`
+            @keyframes confetti-fall {
+              0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+              100% { transform: translateY(100px) rotate(720deg); opacity: 0; }
+            }
+            .animate-confetti {
+              animation: confetti-fall 2s ease-out forwards;
+            }
+          `}</style>
+
           <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
             <button
               onClick={() => setActiveTab('edit')}
@@ -551,12 +603,14 @@ export default function EditorPage() {
                 {score.total}<span className="text-sm text-slate-500">/30</span>
               </span>
               {scoreDelta !== null && scoreDelta !== 0 && (
-                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${scoreDelta > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                  {scoreDelta > 0 ? '↑' : '↓'}{Math.abs(scoreDelta)}
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${scoreDelta > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                  {scoreDelta > 0 ? '+' : ''}{scoreDelta}
                 </span>
               )}
-              {showCelebration && <span className="text-lg">🎉</span>}
-              {(score.gaps?.length ?? 0) > 0 && (
+              {motivationMessage && (
+                <span className="text-sm font-medium animate-pulse">{motivationMessage}</span>
+              )}
+              {!motivationMessage && (score.gaps?.length ?? 0) > 0 && (
                 <span className="text-xs text-orange-400">{score.gaps.length} fixes</span>
               )}
             </button>
