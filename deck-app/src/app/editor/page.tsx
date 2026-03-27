@@ -490,12 +490,18 @@ export default function EditorPage() {
 
   if (!html) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-8">
-        <h2 className="text-2xl font-semibold mb-4">No deck found</h2>
-        <p className="text-slate-400 mb-8">Create a deck first to edit it.</p>
-        <Link href="/create" className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg">
-          Create Deck
-        </Link>
+      <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white relative overflow-hidden">
+        {/* Gradient orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-400/20 rounded-full blur-3xl -translate-y-1/2" />
+        <div className="absolute top-20 right-1/4 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl" />
+
+        <div className="relative">
+          <h2 className="text-2xl font-semibold mb-4 text-slate-900">No deck found</h2>
+          <p className="text-slate-500 mb-8">Create a deck first to edit it.</p>
+          <Link href="/create" className="bg-gradient-to-r from-violet-600 to-teal-500 hover:from-violet-700 hover:to-teal-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg shadow-violet-500/25">
+            Create Deck
+          </Link>
+        </div>
       </div>
     )
   }
@@ -773,8 +779,8 @@ export default function EditorPage() {
               <div className="flex flex-col h-full">
                 <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                   {/* Slide Layout */}
-                  <div className="pb-3 border-b border-slate-700">
-                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                  <div className="pb-3 border-b border-slate-200">
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                       Slide {currentSlide + 1} Layout
                     </h3>
                     <div className="flex gap-1.5">
@@ -784,10 +790,10 @@ export default function EditorPage() {
                           onClick={() => handleChangeLayout(layout.id)}
                           disabled={isChangingLayout}
                           title={layout.label}
-                          className="group px-3 py-2 bg-slate-700/50 hover:bg-teal-500/20 hover:border-teal-400 border border-slate-600 rounded-lg transition-all disabled:opacity-50 text-center"
+                          className="group px-3 py-2 bg-slate-50 hover:bg-violet-50 hover:border-violet-400 border border-slate-200 rounded-lg transition-all disabled:opacity-50 text-center"
                         >
                           <span className="text-lg">{layout.icon}</span>
-                          <span className="block text-[10px] text-slate-400 group-hover:text-teal-400 mt-0.5">
+                          <span className="block text-[10px] text-slate-500 group-hover:text-violet-600 mt-0.5">
                             {layout.label}
                           </span>
                         </button>
@@ -795,16 +801,16 @@ export default function EditorPage() {
                     </div>
                     {isChangingLayout && (
                       <div className="flex items-center gap-2 mt-2">
-                        <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs text-teal-400">Applying...</span>
+                        <div className="w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-violet-600">Applying...</span>
                       </div>
                     )}
                   </div>
 
                   {/* Score + Fixes */}
                   {score && (score.gaps?.length ?? 0) > 0 && (
-                    <div className="pb-3 border-b border-slate-700">
-                      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                    <div className="pb-3 border-b border-slate-200">
+                      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                         Fixes ({score.gaps.length})
                       </h3>
                       <div className="space-y-1.5">
@@ -812,16 +818,16 @@ export default function EditorPage() {
                           <button
                             key={i}
                             onClick={() => setPrompt(gap)}
-                            className="w-full text-left px-2 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded text-xs text-slate-300 transition-colors"
+                            className="w-full text-left px-2 py-1.5 bg-slate-50 hover:bg-violet-50 rounded text-xs text-slate-600 transition-colors border border-slate-100 hover:border-violet-200"
                           >
-                            <span className="text-orange-400 mr-1.5">•</span>
+                            <span className="text-orange-500 mr-1.5">•</span>
                             {gap.length > 60 ? gap.slice(0, 60) + '...' : gap}
                           </button>
                         ))}
                         {(score.gaps?.length ?? 0) > 3 && (
                           <button
                             onClick={() => setActiveTab('edit')}
-                            className="text-xs text-teal-400 hover:underline"
+                            className="text-xs text-violet-600 hover:underline"
                           >
                             +{(score.gaps?.length ?? 0) - 3} more →
                           </button>
@@ -846,23 +852,23 @@ export default function EditorPage() {
                         <div
                           key={i}
                           className={`text-sm ${
-                            msg.role === 'user' ? 'text-slate-300' : msg.content.startsWith('✓') ? 'text-green-400' : 'text-red-400'
+                            msg.role === 'user' ? 'text-slate-700' : msg.content.startsWith('✓') ? 'text-emerald-600' : 'text-red-500'
                           }`}
                         >
-                          {msg.role === 'user' && <span className="text-slate-500">You: </span>}
+                          {msg.role === 'user' && <span className="text-slate-400">You: </span>}
                           {msg.content}
                         </div>
                       ))}
                     </>
                   )}
                   {isLoading && (
-                    <div className="text-slate-400 text-sm flex items-center gap-2">
+                    <div className="text-slate-500 text-sm flex items-center gap-2">
                       <span className="animate-spin">⏳</span> Updating deck...
                     </div>
                   )}
                   <div ref={chatEndRef} />
                 </div>
-                <form onSubmit={handleSubmit} className="p-4 border-t border-slate-700">
+                <form onSubmit={handleSubmit} className="p-4 border-t border-slate-200">
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -870,12 +876,12 @@ export default function EditorPage() {
                       onChange={(e) => setPrompt(e.target.value)}
                       placeholder="What would you like to change?"
                       disabled={isLoading}
-                      className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-teal-400"
+                      className="flex-1 bg-white border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                     />
                     <button
                       type="submit"
                       disabled={!prompt.trim() || isLoading}
-                      className="bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 text-white px-4 py-3 rounded-lg text-sm font-medium"
+                      className="bg-gradient-to-r from-violet-600 to-teal-500 hover:from-violet-700 hover:to-teal-600 disabled:bg-slate-200 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 text-white px-4 py-3 rounded-lg text-sm font-medium shadow-md"
                     >
                       →
                     </button>
@@ -890,7 +896,7 @@ export default function EditorPage() {
                 <div className="p-4 space-y-6">
                   {/* Color Schemes */}
                   <div>
-                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
                       Color Scheme
                     </h3>
                     <div className="grid grid-cols-2 gap-2">
@@ -900,7 +906,7 @@ export default function EditorPage() {
                           onClick={() => setColorScheme(scheme)}
                           className={`relative rounded-lg overflow-hidden h-10 transition-all ${
                             colorScheme.id === scheme.id
-                              ? 'ring-2 ring-teal-400 ring-offset-1 ring-offset-slate-800'
+                              ? 'ring-2 ring-violet-500 ring-offset-1 ring-offset-white'
                               : 'hover:scale-105'
                           }`}
                           title={scheme.name}
@@ -915,11 +921,11 @@ export default function EditorPage() {
                   </div>
 
                   {/* Upload Media */}
-                  <div className="border-t border-slate-700 pt-4">
-                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                  <div className="border-t border-slate-200 pt-4">
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
                       Your Images
                     </h3>
-                    <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-teal-400 hover:bg-slate-700/30 transition-all">
+                    <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-violet-400 hover:bg-violet-50 transition-all">
                       <input
                         type="file"
                         accept="image/*"
@@ -928,12 +934,12 @@ export default function EditorPage() {
                         disabled={isUploading}
                       />
                       {isUploading ? (
-                        <span className="text-sm text-slate-400">Uploading...</span>
+                        <span className="text-sm text-slate-500">Uploading...</span>
                       ) : (
                         <>
                           <span className="text-2xl">📷</span>
-                          <span className="text-sm text-slate-300">Upload logo, screenshot, or photo</span>
-                          <span className="text-xs text-slate-500">PNG, JPG up to 5MB</span>
+                          <span className="text-sm text-slate-600">Upload logo, screenshot, or photo</span>
+                          <span className="text-xs text-slate-400">PNG, JPG up to 5MB</span>
                         </>
                       )}
                     </label>
@@ -944,7 +950,7 @@ export default function EditorPage() {
                           <button
                             key={i}
                             onClick={() => insertImage(media.url)}
-                            className="relative group rounded-lg overflow-hidden aspect-square border border-slate-600"
+                            className="relative group rounded-lg overflow-hidden aspect-square border border-slate-200"
                           >
                             <img
                               src={media.url}
@@ -961,8 +967,8 @@ export default function EditorPage() {
                   </div>
 
                   {/* Quick Actions */}
-                  <div className="border-t border-slate-700 pt-4">
-                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                  <div className="border-t border-slate-200 pt-4">
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
                       Style Actions
                     </h3>
                     <div className="space-y-2">
@@ -971,7 +977,7 @@ export default function EditorPage() {
                           setPrompt('Add subtle gradient backgrounds to all slides for visual depth')
                           setActiveTab('edit')
                         }}
-                        className="w-full text-left px-3 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                        className="w-full text-left px-3 py-2 bg-slate-50 hover:bg-violet-50 rounded-lg text-sm text-slate-600 transition-colors border border-slate-100 hover:border-violet-200"
                       >
                         ✨ Add gradient backgrounds
                       </button>
@@ -980,7 +986,7 @@ export default function EditorPage() {
                           setPrompt('Wrap key content in cards with subtle shadows and borders')
                           setActiveTab('edit')
                         }}
-                        className="w-full text-left px-3 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                        className="w-full text-left px-3 py-2 bg-slate-50 hover:bg-violet-50 rounded-lg text-sm text-slate-600 transition-colors border border-slate-100 hover:border-violet-200"
                       >
                         🎴 Add card styling
                       </button>
@@ -989,7 +995,7 @@ export default function EditorPage() {
                           setPrompt('Convert metrics to large stat cards with big numbers')
                           setActiveTab('edit')
                         }}
-                        className="w-full text-left px-3 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                        className="w-full text-left px-3 py-2 bg-slate-50 hover:bg-violet-50 rounded-lg text-sm text-slate-600 transition-colors border border-slate-100 hover:border-violet-200"
                       >
                         📊 Create stat cards
                       </button>
@@ -998,7 +1004,7 @@ export default function EditorPage() {
                           setPrompt('Add relevant emoji icons to slide headlines (1-2 per slide max)')
                           setActiveTab('edit')
                         }}
-                        className="w-full text-left px-3 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                        className="w-full text-left px-3 py-2 bg-slate-50 hover:bg-violet-50 rounded-lg text-sm text-slate-600 transition-colors border border-slate-100 hover:border-violet-200"
                       >
                         🎯 Add icons to headlines
                       </button>
@@ -1013,19 +1019,19 @@ export default function EditorPage() {
               <div className="p-4">
                 {/* Save New Version */}
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-slate-300 mb-2">Save Current Version</h3>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-2">Save Current Version</h3>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={newVersionName}
                       onChange={(e) => setNewVersionName(e.target.value)}
                       placeholder="Version name (optional)"
-                      className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                      className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                     />
                     <button
                       onClick={saveVersion}
                       disabled={isSaving}
-                      className="bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                      className="bg-gradient-to-r from-violet-600 to-teal-500 hover:from-violet-700 hover:to-teal-600 disabled:bg-slate-200 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md"
                     >
                       {isSaving ? 'Saving...' : currentDeckId ? 'Update' : 'Save'}
                     </button>
@@ -1033,13 +1039,13 @@ export default function EditorPage() {
 
                   {/* Sign in prompt for anonymous users */}
                   {isAnonymous && (
-                    <div className="mt-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
-                      <p className="text-slate-400 text-xs mb-2">
+                    <div className="mt-3 p-3 bg-violet-50 rounded-lg border border-violet-100">
+                      <p className="text-slate-500 text-xs mb-2">
                         Decks saved to this browser only.
                       </p>
                       <button
                         onClick={() => setShowAuthModal(true)}
-                        className="text-teal-400 hover:text-teal-300 text-xs font-medium"
+                        className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-teal-500 hover:opacity-80 text-xs font-medium"
                       >
                         Sign in to access from anywhere →
                       </button>
@@ -1048,7 +1054,7 @@ export default function EditorPage() {
                 </div>
 
                 {/* Saved Decks */}
-                <h3 className="text-sm font-semibold text-slate-300 mb-2">Saved Decks</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-2">Saved Decks</h3>
                 {savedDecks.length === 0 ? (
                   <p className="text-slate-500 text-sm">No decks saved yet</p>
                 ) : (
@@ -1058,24 +1064,24 @@ export default function EditorPage() {
                         key={deck.id}
                         className={`p-3 rounded-lg border ${
                           deck.id === currentDeckId
-                            ? 'border-teal-400 bg-teal-400/10'
-                            : 'border-slate-600 bg-slate-700/50'
+                            ? 'border-violet-400 bg-violet-50'
+                            : 'border-slate-200 bg-white'
                         }`}
                       >
                         <div className="flex justify-between items-start mb-1">
-                          <span className="font-medium text-sm">{deck.name}</span>
+                          <span className="font-medium text-sm text-slate-900">{deck.name}</span>
                           <span className="text-xs text-slate-400">
                             {new Date(deck.updated_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
                           {deck.score && <span>Score: {deck.score}/30</span>}
                           {deck.stage && <span>· {deck.stage}</span>}
                         </div>
                         {deck.id !== currentDeckId && (
                           <button
                             onClick={() => restoreVersion(deck)}
-                            className="mt-2 text-xs text-teal-400 hover:underline"
+                            className="mt-2 text-xs text-violet-600 hover:underline"
                           >
                             Load this deck
                           </button>
@@ -1087,8 +1093,8 @@ export default function EditorPage() {
 
                 {/* Score Trend */}
                 {savedDecks.length > 1 && (
-                  <div className="mt-6 pt-4 border-t border-slate-700">
-                    <h3 className="text-sm font-semibold text-slate-300 mb-2">Score Trend</h3>
+                  <div className="mt-6 pt-4 border-t border-slate-200">
+                    <h3 className="text-sm font-semibold text-slate-700 mb-2">Score Trend</h3>
                     <div className="flex items-end gap-1 h-16">
                       {savedDecks.slice().reverse().map((deck) => {
                         const deckScore = deck.score || 0
@@ -1096,7 +1102,7 @@ export default function EditorPage() {
                         return (
                           <div
                             key={deck.id}
-                            className={`flex-1 rounded-t ${deckScore >= 20 ? 'bg-green-500/50' : deckScore >= 15 ? 'bg-yellow-500/50' : 'bg-orange-500/50'}`}
+                            className={`flex-1 rounded-t ${deckScore >= 20 ? 'bg-emerald-400' : deckScore >= 15 ? 'bg-amber-400' : 'bg-orange-400'}`}
                             style={{ height: `${Math.max(height, 5)}%` }}
                             title={`${deck.name}: ${deckScore}/30`}
                           />
@@ -1114,10 +1120,10 @@ export default function EditorPage() {
               <div className="p-4">
                 {!currentDeckId ? (
                   <div className="text-center py-8">
-                    <p className="text-slate-400 text-sm mb-4">Save a deck first to add feedback</p>
+                    <p className="text-slate-500 text-sm mb-4">Save a deck first to add feedback</p>
                     <button
                       onClick={() => setActiveTab('versions')}
-                      className="text-teal-400 text-sm hover:underline"
+                      className="text-violet-600 text-sm hover:underline"
                     >
                       Go to Versions →
                     </button>
@@ -1125,26 +1131,26 @@ export default function EditorPage() {
                 ) : (
                   <>
                     {/* Add Feedback Form */}
-                    <h3 className="text-sm font-semibold text-slate-300 mb-3">Add Investor Feedback</h3>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3">Add Investor Feedback</h3>
                     <div className="space-y-3 mb-6">
                       <input
                         type="text"
                         value={feedbackForm.investorName}
                         onChange={(e) => setFeedbackForm(f => ({ ...f, investorName: e.target.value }))}
                         placeholder="Investor name"
-                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                       />
                       <textarea
                         value={feedbackForm.feedback}
                         onChange={(e) => setFeedbackForm(f => ({ ...f, feedback: e.target.value }))}
                         placeholder="What did they say?"
                         rows={3}
-                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 resize-none"
+                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
                       />
 
                       {/* Believability Score */}
                       <div>
-                        <label className="text-xs text-slate-400 block mb-1">
+                        <label className="text-xs text-slate-500 block mb-1">
                           Believability Score: {feedbackForm.believabilityScore}/5
                         </label>
                         <input
@@ -1153,7 +1159,7 @@ export default function EditorPage() {
                           max="5"
                           value={feedbackForm.believabilityScore}
                           onChange={(e) => setFeedbackForm(f => ({ ...f, believabilityScore: parseInt(e.target.value) }))}
-                          className="w-full"
+                          className="w-full accent-violet-500"
                         />
                       </div>
 
@@ -1162,7 +1168,7 @@ export default function EditorPage() {
                         <select
                           value={feedbackForm.investorType}
                           onChange={(e) => setFeedbackForm(f => ({ ...f, investorType: e.target.value as typeof feedbackForm.investorType }))}
-                          className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-teal-400"
+                          className="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs text-slate-700 focus:outline-none focus:border-violet-400"
                         >
                           <option value="angel">Angel</option>
                           <option value="seed_vc">Seed VC</option>
@@ -1172,7 +1178,7 @@ export default function EditorPage() {
                         <select
                           value={feedbackForm.domainExpertise}
                           onChange={(e) => setFeedbackForm(f => ({ ...f, domainExpertise: e.target.value as typeof feedbackForm.domainExpertise }))}
-                          className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-teal-400"
+                          className="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs text-slate-700 focus:outline-none focus:border-violet-400"
                         >
                           <option value="none">No domain exp</option>
                           <option value="adjacent">Adjacent</option>
@@ -1181,7 +1187,7 @@ export default function EditorPage() {
                         <select
                           value={feedbackForm.checkSizeFit}
                           onChange={(e) => setFeedbackForm(f => ({ ...f, checkSizeFit: e.target.value as typeof feedbackForm.checkSizeFit }))}
-                          className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-teal-400"
+                          className="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs text-slate-700 focus:outline-none focus:border-violet-400"
                         >
                           <option value="too_small">Check too small</option>
                           <option value="sweet_spot">Sweet spot</option>
@@ -1190,7 +1196,7 @@ export default function EditorPage() {
                         <select
                           value={feedbackForm.meetingStage}
                           onChange={(e) => setFeedbackForm(f => ({ ...f, meetingStage: e.target.value as typeof feedbackForm.meetingStage }))}
-                          className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-teal-400"
+                          className="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs text-slate-700 focus:outline-none focus:border-violet-400"
                         >
                           <option value="cold">Cold outreach</option>
                           <option value="warm_intro">Warm intro</option>
@@ -1202,7 +1208,7 @@ export default function EditorPage() {
                       <button
                         onClick={addFeedback}
                         disabled={!feedbackForm.investorName || !feedbackForm.feedback}
-                        className="w-full bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 text-white py-2 rounded-lg text-sm font-medium"
+                        className="w-full bg-gradient-to-r from-violet-600 to-teal-500 hover:from-violet-700 hover:to-teal-600 disabled:bg-slate-200 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 text-white py-2 rounded-lg text-sm font-medium shadow-md"
                       >
                         Add Feedback
                       </button>
@@ -1211,25 +1217,25 @@ export default function EditorPage() {
                     {/* Existing Feedback */}
                     {dbFeedback.length > 0 && (
                       <>
-                        <h3 className="text-sm font-semibold text-slate-300 mb-2">
+                        <h3 className="text-sm font-semibold text-slate-700 mb-2">
                           Investor Feedback ({dbFeedback.length})
                         </h3>
                         <div className="space-y-3">
                           {dbFeedback.map(f => (
-                            <div key={f.id} className="p-3 bg-slate-700/50 rounded-lg">
+                            <div key={f.id} className="p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
                               <div className="flex justify-between items-start mb-1">
-                                <span className="font-medium text-sm">{f.investor_name}</span>
-                                <span className="text-xs text-teal-400">{f.believability_score}/5</span>
+                                <span className="font-medium text-sm text-slate-900">{f.investor_name}</span>
+                                <span className="text-xs text-violet-600 font-medium">{f.believability_score}/5</span>
                               </div>
-                              <p className="text-sm text-slate-300 mb-2">{f.feedback}</p>
+                              <p className="text-sm text-slate-600 mb-2">{f.feedback}</p>
                               <div className="flex flex-wrap gap-1">
-                                <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
+                                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
                                   {f.investor_type?.replace('_', ' ')}
                                 </span>
-                                <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
+                                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
                                   {f.domain_expertise} exp
                                 </span>
-                                <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
+                                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
                                   {f.meeting_stage?.replace('_', ' ')}
                                 </span>
                               </div>
