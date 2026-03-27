@@ -137,6 +137,7 @@ If content doesn't fit these limits, simplify — never cram.
   <div class="slide-header">
     <span class="text-sm text-[var(--deck-muted)] uppercase tracking-widest">{Section}</span>
   </div>
+  <div class="slide-logo">{emoji}</div>
   <div class="max-w-5xl w-full">
     <h2 class="text-5xl font-bold text-[var(--deck-text)] mb-10 text-center">{Headline}</h2>
     <div class="grid grid-cols-3 gap-6">
@@ -155,6 +156,7 @@ If content doesn't fit these limits, simplify — never cram.
 ### Flow Slide (Solution, How It Works)
 <section class="slide slide-light">
   <div class="slide-header">...</div>
+  <div class="slide-logo">{emoji}</div>
   <div class="max-w-5xl w-full text-center">
     <h2 class="text-5xl font-bold text-[var(--deck-text-alt)] mb-4">{Headline}</h2>
     <p class="text-2xl text-[var(--deck-muted-alt)] mb-10">{Subhead}</p>
@@ -269,6 +271,20 @@ Use this exact structure:
       top: 2rem;
       left: 2rem;
     }
+    .slide-logo {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background: var(--deck-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      opacity: 0.7;
+    }
     .slide-number {
       position: absolute;
       bottom: 2rem;
@@ -301,13 +317,21 @@ Use this exact structure:
 - Missing slide numbers
 
 ## ALWAYS DO
-- Include slide-header on every slide (except cover)
-- Include slide-number on every slide
+- Include slide-header on every slide (except cover) — section name top LEFT
+- Include slide-logo on every slide (except cover) — company emoji/icon top RIGHT
+- Include slide-number on every slide — page number bottom RIGHT
 - Alternate dark/light backgrounds
 - Lead with the most important number/insight
 - Use whitespace generously
 - Make one element per slide visually dominant
-- Vary visual patterns across slides`
+- Vary visual patterns across slides
+
+## SLIDE CHROME LAYOUT (REQUIRED ON ALL SLIDES EXCEPT COVER)
+<div class="slide-header">
+  <span class="text-sm text-[var(--deck-muted)] uppercase tracking-widest">{SECTION NAME}</span>
+</div>
+<div class="slide-logo">{emoji or initial}</div>
+<div class="slide-number">{N}</div>`
 
 export async function POST(request: NextRequest) {
   try {

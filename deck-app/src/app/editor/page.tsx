@@ -121,7 +121,8 @@ export default function EditorPage() {
         const initialScore = {
           total: data.score,
           breakdown: data.scoreBreakdown || {},
-          gaps: data.gaps || []
+          gaps: data.gaps || [],
+          slideScores: data.slideScores || []
         }
         setScore(initialScore)
         // Initialize score history with first score
@@ -517,24 +518,24 @@ export default function EditorPage() {
     <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between">
+      <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-teal-400 hover:underline text-sm">← Home</Link>
-          <h1 className="text-lg font-semibold">Prompt Deck</h1>
+          <Link href="/" className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-teal-500 hover:opacity-80 text-sm font-medium">← Home</Link>
+          <h1 className="text-lg font-semibold text-slate-900">Prompt Deck</h1>
           {currentDeck && (
-            <span className="text-sm text-slate-400">· {currentDeck.name}</span>
+            <span className="text-sm text-slate-500">· {currentDeck.name}</span>
           )}
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrintPDF}
-            className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            className="bg-gradient-to-r from-violet-600 to-teal-500 hover:from-violet-700 hover:to-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md"
           >
             Export PDF
           </button>
           <button
             onClick={handleDownload}
-            className="border border-slate-600 hover:border-slate-500 text-slate-300 px-4 py-2 rounded-lg text-sm font-medium"
+            className="border border-slate-200 hover:border-violet-300 text-slate-600 hover:text-violet-600 px-4 py-2 rounded-lg text-sm font-medium bg-white"
           >
             HTML
           </button>
@@ -543,25 +544,25 @@ export default function EditorPage() {
           {isAnonymous ? (
             <button
               onClick={() => setShowAuthModal(true)}
-              className="text-teal-400 hover:text-teal-300 text-sm font-medium"
+              className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-teal-500 hover:opacity-80 text-sm font-medium"
             >
               Sign in
             </button>
           ) : (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white text-sm font-medium">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
                 {user?.email?.[0].toUpperCase()}
               </div>
               <button
                 onClick={() => signOut()}
-                className="text-slate-400 hover:text-white text-xs"
+                className="text-slate-400 hover:text-slate-600 text-xs"
               >
                 Sign out
               </button>
             </div>
           )}
 
-          <Link href="/create" className="text-slate-400 hover:text-white text-sm">
+          <Link href="/create" className="text-slate-500 hover:text-violet-600 text-sm">
             Start Over
           </Link>
         </div>
@@ -569,7 +570,7 @@ export default function EditorPage() {
 
       {/* Compact Score Banner with Confetti */}
       {score && (
-        <div className="bg-slate-800 border-b border-slate-700 py-2 px-6 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-violet-50 via-white to-teal-50 border-b border-slate-200 py-2 px-6 relative overflow-hidden">
           {/* Confetti Animation */}
           {confettiParticles.map(p => (
             <div
@@ -599,25 +600,25 @@ export default function EditorPage() {
               onClick={() => setActiveTab('edit')}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
-              <span className={`text-2xl font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-orange-400'} ${showCelebration ? 'animate-bounce' : ''}`}>
-                {score.total}<span className="text-sm text-slate-500">/30</span>
+              <span className={`text-2xl font-bold ${score.total >= 20 ? 'text-emerald-500' : score.total >= 15 ? 'text-amber-500' : 'text-orange-500'} ${showCelebration ? 'animate-bounce' : ''}`}>
+                {score.total}<span className="text-sm text-slate-400">/30</span>
               </span>
               {scoreDelta !== null && scoreDelta !== 0 && (
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${scoreDelta > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${scoreDelta > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                   {scoreDelta > 0 ? '+' : ''}{scoreDelta}
                 </span>
               )}
               {motivationMessage && (
-                <span className="text-sm font-medium animate-pulse">{motivationMessage}</span>
+                <span className="text-sm font-medium animate-pulse text-slate-700">{motivationMessage}</span>
               )}
               {!motivationMessage && (score.gaps?.length ?? 0) > 0 && (
-                <span className="text-xs text-orange-400">{score.gaps.length} fixes</span>
+                <span className="text-xs text-orange-500">{score.gaps.length} fixes</span>
               )}
             </button>
             <button
               onClick={handleRescore}
               disabled={isRescoring}
-              className="text-xs bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 px-3 py-1.5 rounded transition-colors"
+              className="text-xs bg-white border border-slate-200 hover:border-violet-300 hover:text-violet-600 disabled:bg-slate-100 disabled:text-slate-400 text-slate-600 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
             >
               {isRescoring ? '...' : 'Re-score'}
             </button>
@@ -632,7 +633,7 @@ export default function EditorPage() {
           {/* Collapse toggle button - fixed position */}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-slate-700 hover:bg-slate-600 text-slate-300 w-6 h-16 items-center justify-center rounded-l-lg border-l border-y border-slate-600 transition-colors"
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white hover:bg-violet-50 text-slate-500 hover:text-violet-600 w-6 h-16 items-center justify-center rounded-l-lg border-l border-y border-slate-200 transition-colors shadow-sm"
             style={{ right: sidebarCollapsed ? 0 : 320 }}
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
@@ -643,20 +644,20 @@ export default function EditorPage() {
           </div>
 
           {/* Slide Navigation */}
-          <div className="bg-slate-800 border-t border-slate-700 px-6 py-4">
+          <div className="bg-white border-t border-slate-200 px-6 py-4">
             <div className="flex items-center justify-center gap-4">
               <button
                 onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
                 disabled={currentSlide === 0}
-                className="px-3 py-1 rounded text-sm disabled:text-slate-600 text-slate-300 hover:text-white"
+                className="px-3 py-1 rounded text-sm disabled:text-slate-300 text-slate-600 hover:text-violet-600"
               >
                 ◀ Prev
               </button>
-              <span className="text-slate-400 text-sm">{currentSlide + 1} / {totalSlides}</span>
+              <span className="text-slate-500 text-sm">{currentSlide + 1} / {totalSlides}</span>
               <button
                 onClick={() => setCurrentSlide(Math.min(totalSlides - 1, currentSlide + 1))}
                 disabled={currentSlide === totalSlides - 1}
-                className="px-3 py-1 rounded text-sm disabled:text-slate-600 text-slate-300 hover:text-white"
+                className="px-3 py-1 rounded text-sm disabled:text-slate-300 text-slate-600 hover:text-violet-600"
               >
                 Next ▶
               </button>
@@ -666,12 +667,12 @@ export default function EditorPage() {
               {Array.from({ length: totalSlides }).map((_, i) => {
                 const slideScore = score?.slideScores?.find(s => s.slide === i + 1)
                 const scoreColor = slideScore?.status === 'green'
-                  ? 'bg-green-500/20 border-green-500 text-green-400'
+                  ? 'bg-emerald-50 border-emerald-400 text-emerald-600'
                   : slideScore?.status === 'yellow'
-                    ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400'
+                    ? 'bg-amber-50 border-amber-400 text-amber-600'
                     : slideScore?.status === 'red'
-                      ? 'bg-red-500/20 border-red-500 text-red-400'
-                      : 'bg-slate-700 border-slate-600 text-slate-300'
+                      ? 'bg-red-50 border-red-400 text-red-600'
+                      : 'bg-white border-slate-200 text-slate-600'
 
                 return (
                   <button
@@ -680,11 +681,11 @@ export default function EditorPage() {
                     title={slideScore?.issue || `Slide ${i + 1}`}
                     className={`w-7 h-7 rounded text-xs font-medium transition-all border ${
                       i === currentSlide
-                        ? `${scoreColor} ring-2 ring-offset-1 ring-offset-slate-900 ${
-                            slideScore?.status === 'green' ? 'ring-green-400'
-                            : slideScore?.status === 'yellow' ? 'ring-yellow-400'
+                        ? `${scoreColor} ring-2 ring-offset-1 ring-offset-white ${
+                            slideScore?.status === 'green' ? 'ring-emerald-400'
+                            : slideScore?.status === 'yellow' ? 'ring-amber-400'
                             : slideScore?.status === 'red' ? 'ring-red-400'
-                            : 'ring-teal-400'
+                            : 'ring-violet-400'
                           }`
                         : `${scoreColor} hover:opacity-80`
                     }`}
@@ -700,9 +701,9 @@ export default function EditorPage() {
               if (currentSlideScore?.issue) {
                 return (
                   <div className={`mt-2 px-3 py-1.5 rounded text-xs text-center ${
-                    currentSlideScore.status === 'red' ? 'bg-red-500/10 text-red-400' :
-                    currentSlideScore.status === 'yellow' ? 'bg-yellow-500/10 text-yellow-400' :
-                    'bg-green-500/10 text-green-400'
+                    currentSlideScore.status === 'red' ? 'bg-red-50 text-red-600 border border-red-200' :
+                    currentSlideScore.status === 'yellow' ? 'bg-amber-50 text-amber-600 border border-amber-200' :
+                    'bg-emerald-50 text-emerald-600 border border-emerald-200'
                   }`}>
                     {currentSlideScore.issue}
                   </div>
@@ -713,8 +714,8 @@ export default function EditorPage() {
             {/* Legend */}
             {score?.slideScores && score.slideScores.length > 0 && (
               <div className="flex justify-center gap-3 mt-2 text-[10px] text-slate-500">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> Strong</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500"></span> Improve</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Strong</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Improve</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> Fix</span>
               </div>
             )}
@@ -722,17 +723,17 @@ export default function EditorPage() {
         </div>
 
         {/* Right: Sidebar with Tabs */}
-        <div className={`w-80 bg-slate-800 border-l border-slate-700 flex flex-col flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'hidden md:hidden' : 'md:flex'}`}>
+        <div className={`w-80 bg-white border-l border-slate-200 flex flex-col flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'hidden md:hidden' : 'md:flex'}`}>
           {/* Tabs */}
-          <div className="flex border-b border-slate-700">
+          <div className="flex border-b border-slate-200">
             {(['design', 'edit'] as Tab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 px-3 py-3 text-sm font-medium capitalize ${
                   activeTab === tab
-                    ? 'text-teal-400 border-b-2 border-teal-400'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-teal-500 border-b-2 border-violet-500'
+                    : 'text-slate-500 hover:text-violet-600'
                 }`}
               >
                 {tab}
@@ -745,19 +746,19 @@ export default function EditorPage() {
             ))}
             {/* More dropdown for versions/feedback */}
             <div className="relative group">
-              <button className="px-3 py-3 text-sm font-medium text-slate-400 hover:text-white">
+              <button className="px-3 py-3 text-sm font-medium text-slate-400 hover:text-violet-600">
                 •••
               </button>
-              <div className="absolute right-0 top-full bg-slate-700 border border-slate-600 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <div className="absolute right-0 top-full bg-white border border-slate-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                 <button
                   onClick={() => setActiveTab('versions')}
-                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-600 ${activeTab === 'versions' ? 'text-teal-400' : 'text-slate-300'}`}
+                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-violet-50 ${activeTab === 'versions' ? 'text-violet-600' : 'text-slate-600'}`}
                 >
                   Versions
                 </button>
                 <button
                   onClick={() => setActiveTab('feedback')}
-                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-600 ${activeTab === 'feedback' ? 'text-teal-400' : 'text-slate-300'}`}
+                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-violet-50 ${activeTab === 'feedback' ? 'text-violet-600' : 'text-slate-600'}`}
                 >
                   Feedback
                 </button>

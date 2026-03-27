@@ -65,6 +65,7 @@ export default function AuditPage() {
     verdict: string
     topFixes: string[]
     detailedNotes: string
+    slideScores?: { slide: number; score: number; status: 'green' | 'yellow' | 'red'; issue: string | null }[]
   } | null>(null)
   const [error, setError] = useState('')
   const [inputMode, setInputMode] = useState<'url' | 'paste' | 'upload' | 'saved'>('url')
@@ -169,6 +170,7 @@ export default function AuditPage() {
       score: result?.score,
       scoreBreakdown: result?.scoreBreakdown,
       gaps: result?.topFixes,
+      slideScores: result?.slideScores,
     }))
     router.push('/editor')
   }
