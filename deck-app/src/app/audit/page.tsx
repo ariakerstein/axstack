@@ -658,6 +658,39 @@ export default function AuditPage() {
                 </div>
               </div>
             </div>
+
+            {/* Scoring philosophy */}
+            <div className="mt-8 pt-8 border-t border-slate-200">
+              <h2 className="text-xl font-semibold mb-4 text-slate-900">Why we score this way</h2>
+              <p className="text-slate-600 mb-6">
+                We studied the actual seed decks that closed: Intercom (8 slides, $600K),
+                Tinder (10 slides), Airbnb (12 slides). The pattern is clear.
+              </p>
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-violet-50 to-white border border-slate-200 p-5 rounded-xl">
+                  <p className="font-semibold text-slate-900 mb-2">Short beats comprehensive</p>
+                  <p className="text-sm text-slate-600">
+                    The decks that try to cover everything end up saying nothing. The ones that pick
+                    one insight and hammer it home are the ones that closed. We penalize clutter.
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-teal-50 to-white border border-slate-200 p-5 rounded-xl">
+                  <p className="font-semibold text-slate-900 mb-2">Narrative over numbers</p>
+                  <p className="text-sm text-slate-600">
+                    Coinbase pitched Bitcoin at $6.25. Airbnb&apos;s revenue projections were wrong.
+                    Facebook&apos;s deck was barely a fundraising document. We weight conviction and
+                    clarity higher than precision at seed stage.
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-amber-50 to-white border border-slate-200 p-5 rounded-xl">
+                  <p className="font-semibold text-slate-900 mb-2">Substance over storytelling</p>
+                  <p className="text-sm text-slate-600">
+                    WeWork&apos;s deck read like a masterclass in narrative. The fundamentals were hollow.
+                    We check that your story is backed by real insight, not just polished words.
+                  </p>
+                </div>
+              </div>
+            </div>
           </>
         ) : (
           /* Results */
